@@ -1,0 +1,3 @@
+name: poly
+depend: standard-library category-theory
+include: .
