@@ -20,15 +20,6 @@ open import Representable
 postulate
   ∀-extensionality : ∀ {A : Set} {B : A → Set} {f g : ∀(x : A) → B x} → (∀ (x : A) → f x ≡ g x) → f ≡ g
 
-infix 0 _≃_
-record _≃_ (A B : Set) : Set where
-  field
-    to   : A → B
-    from : B → A
-    from∘to : ∀ (x : A) → from (to x) ≡ x
-    to∘from : ∀ (y : B) → to (from y) ≡ y
-open _≃_
-
 data Bool : Set where
   false true : Bool
 
@@ -150,13 +141,8 @@ unit-unique unit unit = refl
 true≢false : true ≡ false → ⊥
 true≢false ()
 
--- Const Bool Unit ≅ _ → Unit
-
--- to : Const Bool Unit → (_ → Unit)
--- from : (_ → Unit)  → Const Bool Unit
-
--- from⨟to : from ⨟ to ≡ _ → Unit
--- to⨟from : to ⨟ from ≡ Const Bool Unit
+pointwise : ∀ {A B : Set} {f g : A → B} → f ≡ g → ∀ x → f x ≡ g x
+pointwise refl x = refl
 
 const-bool-not-representable : Representable Sets ConstBoolFunctor → ⊥
 const-bool-not-representable record { rep = rep ; iso = iso } =
@@ -166,13 +152,18 @@ const-bool-not-representable record { rep = rep ; iso = iso } =
    (
     begin
       true
-    ≡⟨ {!!} ⟩
+    ≡⟨ refl ⟩
+      Const true unit
+    ≡⟨ sym (pointwise (to⨟from iso') true) ⟩
+      from iso' (to iso' true)
+    ≡⟨ cong (from iso') (!-unique (to iso' true) (to iso' false)) ⟩
+      from iso' (to iso' false)
+    ≡⟨ pointwise (to⨟from iso') false ⟩
+      Const false unit
+    ≡⟨ refl ⟩
       false
     ∎
    )
-
---ConstBool-!Representable : {A : Set} → ({∀ x : Set} → Constant Bool A ≃ (x → A)) → ⊥
---ConstBool-!Representable iso = {!!}
 
 -- 3) 'Const Unit' is 'Representable' by '⊥'
 
@@ -196,11 +187,14 @@ ConstUnitRepresentable =
 
 -- 4) 'Const Void' is not 'Representable'
 
-ConstFunctorVoid : EndoFunctor Sets
-ConstFunctorVoid = ConstFunctor ⊥
+Const-⊥-Functor : EndoFunctor Sets
+Const-⊥-Functor = ConstFunctor ⊥
 
---ConstVoid-!Representable : {A : Set} → ({∀ x : Set} → Constant Void A ≃ (x → A)) → Void
---ConstVoid-!Representable iso = {!!}
+const-⊥-not-representable : Representable Sets Const-⊥-Functor → ⊥
+const-⊥-not-representable
+  record { rep = rep ; iso = iso } =
+    let iso' = iso {a = Unit}
+    in from iso' (λ _ → unit)
 
 -- 5) 'X ↦→ 𝑋^ℕ' is 'Representable' trivially by itself ('ℕ → X'):  'ℕ → A ≅ ℕ → A'
 
