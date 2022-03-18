@@ -12,13 +12,13 @@ open import Data.Vec using (Vec; _∷_; []; map; lookup; tabulate)
 
 open import Category
 open import Functor
+open import FunExt
 open import Isomorphism
+open import NaturalTransformation
 open import Representable
+open import Data.Reader
 
 ------------------------------------------------------------------------------------------
-
-postulate
-  ∀-extensionality : ∀ {A : Set} {B : A → Set} {f g : ∀(x : A) → B x} → (∀ (x : A) → f x ≡ g x) → f ≡ g
 
 data Bool : Set where
   false true : Bool
@@ -252,3 +252,74 @@ VecNFinRepresentable n =
 -- 
 -- const true    const ()
 -- const false
+
+------------------------------------------------------------------------------------------
+-- Proposition 2.5
+
+{-
+For any function 'f : R → S', there is a 'NaturalTransformation' 'y^f : y^S → y^R'.
+
+On any set 'X', the X-Component 'X^f : X^S → X^R' is given by sending 'g : S → X' 'f ⨟ g : R → X'.
+
+In other words:
+
+Given:
+
+f : R → S
+
+We get a natural transformation:
+
+y^f : (S → y) → (R → y)
+
+Which can be applied to any set @y@:
+
+X^f : (S → X) → (R → X)
+X^f g = f ⨟ g
+
+-}
+
+------------------------------------------------------------------------------------------
+-- Exercise 2.6
+
+{-
+Prove that for any function '𝑓 : 𝑅 → 𝑆', what we said was a natural
+transformation in Proposition 2.5 really is natural. That is, for any
+function 'ℎ : 𝑋 → 𝑌', show that the following diagram commutes:
+-}
+
+proof : {R S : Set} → (R → S) → NaturalTransformation (ReaderFunctor S) (ReaderFunctor R)
+proof f =
+  record
+    { η = λ _ g r → g (f r)
+    ; commute = λ h → ∀-extensionality (λ g → refl)
+    }
+
+------------------------------------------------------------------------------------------
+-- Exercise 2.7
+
+{-
+Let '𝑋' be an arbitrary set. For each of the following sets '𝑅', '𝑆' and
+functions '𝑓 : 𝑅 → 𝑆', describe the 𝑋-component of, i.e. the function 𝑋^𝑆
+→ 𝑋^𝑅 coming from, the natural transformation y^𝑓 : y^𝑆 → y^𝑅.
+
+1. 𝑅 = 5, 𝑆 = 5, 𝑓 = id. (Here you’re supposed to give a function called 𝑋^id5 : 𝑋^5 →
+𝑋^5.)
+2. 𝑅 = 2, 𝑆 = 1, 𝑓 is the unique function.
+3. 𝑅 = 1, 𝑆 = 2, 𝑓 (1) = 1
+-}
+
+-- 1)
+exercise-27-1 : {X : Set} → (Fin 5 → X) → Fin 5 → X
+exercise-27-1 f fin = f fin
+
+-- 2)
+weaken : {n : ℕ} → Fin n → Fin (suc n)
+weaken zero = zero
+weaken (suc fin) = suc (weaken fin)
+
+exercise-27-2 : {X : Set} → (Fin 2 → X) → Fin 1 → X
+exercise-27-2 f fin = f (weaken fin)
+
+-- 3)
+exercise-27-3 : {X : Set} → (Fin 1 → X) → Fin 2 → X
+exercise-27-3 f fin = f zero
