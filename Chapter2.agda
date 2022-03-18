@@ -10,6 +10,7 @@ open import Data.Nat
 open import Data.Fin
 open import Data.Vec using (Vec; _∷_; []; map; lookup; tabulate)
 
+-- The following modules live here: https://github.com/solomon-b/category-theory
 open import Category
 open import Functor
 open import FunExt
