@@ -314,13 +314,13 @@ exercise-27-1 : {X : Set} → (Fin 5 → X) → Fin 5 → X
 exercise-27-1 f fin = f fin
 
 -- 2)
+exercise-27-2 : {X : Set} → (Fin 1 → X) → Fin 2 → X
+exercise-27-2 f fin = f zero
+
+-- 3)
 weaken : {n : ℕ} → Fin n → Fin (suc n)
 weaken zero = zero
 weaken (suc fin) = suc (weaken fin)
 
-exercise-27-2 : {X : Set} → (Fin 2 → X) → Fin 1 → X
-exercise-27-2 f fin = f (weaken fin)
-
--- 3)
-exercise-27-3 : {X : Set} → (Fin 1 → X) → Fin 2 → X
-exercise-27-3 f fin = f zero
+exercise-27-3 : {X : Set} → (Fin 2 → X) → Fin 1 → X
+exercise-27-3 f fin = f (weaken fin)
