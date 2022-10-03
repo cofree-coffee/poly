@@ -1,7 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 module Chapter2 where
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂; module ≡-Reasoning)
 open ≡-Reasoning
 
 open import Function using (_∘_)
@@ -12,12 +12,15 @@ open import Data.Vec using (Vec; _∷_; []; map; lookup; tabulate)
 
 -- The following modules live here: https://github.com/solomon-b/category-theory
 open import Category
+open import Category.Sets
+open import Category.Op
 open import Functor
 open import FunExt
 open import Isomorphism
 open import NaturalTransformation
 open import Representable
 open import Data.Reader
+open import Category.Endofunctors
 
 ------------------------------------------------------------------------------------------
 
@@ -39,8 +42,9 @@ PairFunctor =
   record
     { mapₒ = Pair
     ; mapₘ = λ{ f (fst , snd) → ( f fst , f snd ) }
-    ; id = refl
-    ; composition = refl
+    ; id = λ x → refl
+    ; composition = λ x → refl
+    ; cong-mapₘ = λ{ prf (fst , snd) → cong₂ _,_ (prf fst) (prf snd) }
     }
 
 -- | 'Pair A' is isomorphic to 'Bool → A'
@@ -49,8 +53,8 @@ Pair≃Bool→A =
   record
     { to = λ{ (fst , snd) false → fst ; (fst , snd) true → snd }
     ; from = λ f → ( f false , f true )
-    ; from⨟to = ∀-extensionality λ f → ∀-extensionality λ{ false → refl ; true → refl }
-    ; to⨟from = refl
+    ; from⨟to = λ f → ∀-extensionality λ{ false → refl ; true → refl }
+    ; to⨟from = λ x → refl
     }
 
 -- | Making it 'Representable' by 'Bool'
@@ -90,8 +94,9 @@ IdentityFunctor =
   record
     { mapₒ = Identity
     ; mapₘ = λ f x → Identity (f x)
-    ; id = refl
-    ; composition = refl
+    ; id = λ _ → refl
+    ; composition = λ _ → refl
+    ; cong-mapₘ = λ{ prf x → prf x }
     }
 
 -- | 'Identity A' is isomorphic to 'Unit → A'
@@ -100,8 +105,8 @@ Identity≃Unit→a =
   record
     { to = λ a unit → a
     ; from = λ f → f unit
-    ; from⨟to = ∀-extensionality (λ f → ∀-extensionality (λ{ unit → refl }))
-    ; to⨟from = refl
+    ; from⨟to = λ f → ∀-extensionality (λ{ unit → refl })
+    ; to⨟from = λ _ → refl
     }
 
 -- | Making it Representable by 'unit'
@@ -126,8 +131,9 @@ ConstFunctor A =
   record
     { mapₒ = Const A
     ; mapₘ = λ f x → x
-    ; id = refl
-    ; composition = refl
+    ; id = λ _ → refl
+    ; composition = λ _ → refl
+    ; cong-mapₘ = λ _ _ → refl
     }
 
 ConstBoolFunctor : EndoFunctor Sets
@@ -155,11 +161,11 @@ const-bool-not-representable record { rep = rep ; iso = iso } =
       true
     ≡⟨ refl ⟩
       Const true unit
-    ≡⟨ sym (pointwise (to⨟from iso') true) ⟩
+    ≡⟨ sym ((to⨟from iso') true) ⟩
       from iso' (to iso' true)
     ≡⟨ cong (from iso') (!-unique (to iso' true) (to iso' false)) ⟩
       from iso' (to iso' false)
-    ≡⟨ pointwise (to⨟from iso') false ⟩
+    ≡⟨ (to⨟from iso') false ⟩
       Const false unit
     ≡⟨ refl ⟩
       false
@@ -176,8 +182,8 @@ ConstUnit≃Void→a =
   record
     { to = λ{ unit void → ⊥-elim void }
     ; from = λ _ → unit
-    ; from⨟to = ∀-extensionality λ f → ∀-extensionality (λ void → ⊥-elim void)
-    ; to⨟from = ∀-extensionality (λ{ unit → refl })
+    ; from⨟to = λ f → ∀-extensionality (λ void → ⊥-elim void)
+    ; to⨟from = λ{ unit → refl }
     }
 
 ConstUnitRepresentable : Representable Sets ConstUnitFunctor
@@ -211,13 +217,13 @@ map-comp {f = f} {g = g} {n = zero} x [] = refl
 map-comp {f = f} {g = g} {n = suc n} x (y ∷ xs) = cong (λ ys → g (f x) ∷ ys) (map-comp y xs)
 
 VecNFunctor : ℕ → EndoFunctor Sets
-VecNFunctor n =
-  record
-    { mapₒ = λ a → Vec a n
-    ; mapₘ = λ{ f xs → map f xs }
-    ; id = ∀-extensionality (vec-unit n)
-    ; composition = ∀-extensionality λ{ [] → refl ; (x ∷ xs) → map-comp x xs }
-    } 
+mapₒ (VecNFunctor n) = λ a → Vec a n
+mapₘ (VecNFunctor n) = λ{ f xs → map f xs }
+id (VecNFunctor n) = (vec-unit n)
+composition (VecNFunctor n) = λ{ [] → refl ; (x ∷ xs) → map-comp x xs }
+cong-mapₘ (VecNFunctor .zero) prf [] = refl
+cong-mapₘ (VecNFunctor (suc n)) prf (x ∷ xs) = cong₂ _∷_ (prf x) (cong-mapₘ (VecNFunctor n) prf xs)
+
 
 from⨟to-lemma : {A : Set} → {n : ℕ} → (f : Sets [ Fin n , A ]) → (x : Fin n) → (Sets [ tabulate ⨟ lookup ]) f x ≡ f x
 from⨟to-lemma f zero = refl
@@ -232,8 +238,8 @@ VecN≅FinN n =
   record
     { to = lookup
     ; from = tabulate
-    ; from⨟to = ∀-extensionality (λ f → ∀-extensionality (from⨟to-lemma f))
-    ; to⨟from = ∀-extensionality to⨟from-lemma
+    ; from⨟to = λ f → ∀-extensionality (from⨟to-lemma f)
+    ; to⨟from = to⨟from-lemma
     }
 
 VecNFinRepresentable : (n : ℕ) → Representable Sets (VecNFunctor n)
@@ -292,7 +298,7 @@ proof : {R S : Set} → (R → S) → NaturalTransformation (ReaderFunctor S) (R
 proof f =
   record
     { η = λ _ g r → g (f r)
-    ; commute = λ h → ∀-extensionality (λ g → refl)
+    ; commute = λ h g → refl
     }
 
 ------------------------------------------------------------------------------------------
@@ -324,3 +330,43 @@ weaken (suc fin) = suc (weaken fin)
 
 exercise-27-3 : {X : Set} → (Fin 2 → X) → Fin 1 → X
 exercise-27-3 f fin = f (weaken fin)
+
+------------------------------------------------------------------------------------------
+-- Exercise 2.8
+
+{-
+Show that the construction in Proposition 2.5 is functorial:
+
+  y⁻ : Set^op → [Set, Set]
+
+as follows.
+
+1. Show that for any set '𝑆', we have that 'y^id𝑆 : y^𝑆 → y^𝑆' is the identity.
+2. Show that for any functions '𝑓 : 𝑅 → 𝑆' and '𝑔 : 𝑆 → 𝑇', we have y^𝑔 ⨟ y^𝑓 = y^(𝑓⨟𝑔) .
+-}
+
+-- A mapping from the objects of Set^op to the objects of [Set, Set]
+y⁻ₒ : (ob (Op Sets)) → Functor Sets Sets
+y⁻ₒ R =
+  record
+    { mapₒ = λ A → (R → A)
+    ; mapₘ = λ f g r → f (g r)
+    ; id = (λ f → refl)
+    ; composition = (λ f → refl)
+    ; cong-mapₘ = λ prf f → ∀-extensionality (λ x → prf (f x))
+    }
+
+-- A mapping of morphisms that involves 'y⁻ₒ'
+y⁻ₘ : {x y : ob (Op Sets)} → Op Sets [ x , y ] → EndoFunctorCategory [ y⁻ₒ x , y⁻ₒ y ]
+y⁻ₘ h =
+  record
+    { η = λ X f y → f (h y)
+    ; commute = λ f _ → refl
+    }
+
+y⁻ : Functor (Op Sets) (EndoFunctorCategory)
+mapₒ y⁻ = y⁻ₒ
+mapₘ y⁻ = y⁻ₘ
+id y⁻ = λ _ _ → refl
+composition y⁻ = λ _ _ → refl
+cong-mapₘ y⁻ = λ prf X f → ∀-extensionality (λ x → cong f (prf x))
