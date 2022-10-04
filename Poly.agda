@@ -8,7 +8,7 @@ open import Function
 open import Data.Fin
 open import Data.Nat 
 open import Data.Product 
-open import Data.String
+import Data.String as String
 open import Data.Unit
 open import Data.Vec hiding (_++_)
 
@@ -56,10 +56,10 @@ record Poly : Set where
     Tag : Set        -- I aka Fin _
     Args : Tag → Set -- a
 
-open Poly
+open Poly public
 
 private variable
-  A B S T I O : Set
+  A B C D S T I O : Set
   P Q R : Poly
 
 -- | Interpretation of a Poly as a Type
@@ -69,60 +69,6 @@ private variable
 -- | All interpretations of Polys are Functors
 pmap : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
 pmap f (tag , args) = tag , λ x → f (args x)
-
-maybeₚ : Poly
-Tag maybeₚ = Fin 2
-Args maybeₚ zero = Fin 0
-Args maybeₚ (suc x) = Fin 1
-
-Maybe : Set → Set
-Maybe = ⟦ maybeₚ ⟧
-
-just : A → Maybe A
-just a = (suc zero) , λ _ → a
-
-nothing : Maybe A
-nothing = zero , (λ ())
-
-case-maybe : B → (A → B) → Maybe A → B
-case-maybe cnothing cjust (zero , args) = cnothing
-case-maybe cnothing cjust (suc tag , args) = cjust (args zero)
-
-listₚ : Poly
-listₚ .Tag  = ℕ
-listₚ .Args n = Fin n
-
-List : Set → Set
-List = ⟦ listₚ ⟧
-
-nil : List A
-nil = zero , λ ()
-
-cons : A → List A → List A
-cons a (tag , args) = (suc tag) , λ where
-  zero → a
-  (suc x) → args x
-
-vector : ℕ → Poly
-(vector n) .Tag  = Fin 1
-(vector n) .Args  = λ _ → Fin n
-
-Vector : ℕ → Set → Set
-Vector n = ⟦ vector n ⟧
-
-vnil : Vector 0 A
-vnil = zero , λ ()
-
-vcons : {n : ℕ} → A → Vector n A → Vector (suc n) A
-vcons a (tag , args) = tag , λ where
-  zero → a
-  (suc x) → args x
-
-vector⇒list : ∀ (n : ℕ) → Vector n A → List A
-vector⇒list n (tag , args) = n , args
-
-list⇒vector : List A → Σ[ n ∈ ℕ ] Vector n A
-list⇒vector (tag , args) = tag , zero , args
 
 --------------------------------------------------------------------------------
 
@@ -135,12 +81,16 @@ _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q
 (P ⊗ Q) .Args  (tagp , tagq) = Args P tagp × Args Q tagq
 
+-- _⊕_ : Poly → Poly → Poly
+-- _⊕_ P Q = {!!}
+
 -- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
 -- Σ ? Π ?   ≡ Σ Π (Σ Π)
 _◁_ : Poly → Poly → Poly
 (P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
 (P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
 
+-- | A map between two Polynomials
 record _⇒_ (P Q : Poly) : Set where
   no-eta-equality
   constructor poly-map
@@ -148,36 +98,13 @@ record _⇒_ (P Q : Poly) : Set where
     map-tag : P .Tag → Q .Tag 
     map-args : (tag : P .Tag ) → Q .Args (map-tag tag) → P .Args tag
 
-open _⇒_
+open _⇒_ public
 
 -- | Transform a map between polynomials into a natural
 -- | transformation (a polymorphic function).
 _⟨$⟩_ : P ⇒ Q → ⟦ P ⟧ A → ⟦ Q ⟧ A
 p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p⇒q tag qargs)
 
-maybeToListₚ : maybeₚ ⇒ listₚ
-maybeToListₚ .map-tag = toℕ
-maybeToListₚ .map-args zero ()
-maybeToListₚ .map-args (suc zero) x = x
-
-maybeToList : Maybe A → List A
-maybeToList maybe = maybeToListₚ ⟨$⟩ maybe
-
---------------------------------------------------------------------------------
-
--- | S · xˢ → O · xᴵ
-moore : Set → Set → Set → Set
-moore S I O = monomial S S ⇒ monomial O I
-
-helloMoore : moore String String String 
-helloMoore .map-tag  = id
-helloMoore .map-args  = λ _ name → "hello, " ++ name
-
--- | SI · xˢ → O · x¹
-mealy : Set → Set → Set → Set
-mealy S I O = monomial (S × I) S ⇒ monomial O (Fin 1)
-
-step : I → S → moore S I O → (O × S)
-step i s bot = bot .map-tag s , bot .map-args s i 
-
-
+_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
+(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
+(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
