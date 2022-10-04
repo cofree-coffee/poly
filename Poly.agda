@@ -93,6 +93,16 @@ p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p�
 
 --------------------------------------------------------------------------------
 
+-- | Composition of Polyonomial Functors
+-- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
+-- Σ ? Π ?   ≡ Σ Π (Σ Π)
+_◁_ : Poly → Poly → Poly
+(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
+(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
+
+--------------------------------------------------------------------------------
+-- The Parallel Product
+
 _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q
 (P ⊗ Q) .Args  (tagp , tagq) = Args P tagp × Args Q tagq
@@ -103,16 +113,7 @@ _⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
 
 --------------------------------------------------------------------------------
 
--- | Composition of Polyonomial Functors
--- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
--- Σ ? Π ?   ≡ Σ Π (Σ Π)
-_◁_ : Poly → Poly → Poly
-(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
-(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
-
---------------------------------------------------------------------------------
-
--- | The co-product of two Polyonomials
+-- | The Categorical Co-Product of two Polyonomials
 _+_ : Poly → Poly → Poly
 (P + Q) .Tag = P .Tag ⊎ Q .Tag
 (P + Q) .Args (inj₁ x) = P .Args x
@@ -133,3 +134,23 @@ eitherₚ f g .map-tag (inj₁ ptag) = f .map-tag ptag
 eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
 eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
 eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
+
+--------------------------------------------------------------------------------
+
+-- | The Categorical Product of two Polynomials
+_×ₚ_ : Poly → Poly → Poly
+(P ×ₚ Q) .Tag  =  P .Tag × Q .Tag
+(P ×ₚ Q) .Args (ptag , qtag) = P .Args ptag ⊎ Q .Args qtag
+
+fstₚ : (P ×ₚ Q) ⇒ P
+fstₚ .map-tag (ptag , qtag) = ptag
+fstₚ .map-args (ptag , qtag) pargs = inj₁ pargs
+
+sndₚ : (P ×ₚ Q) ⇒ Q
+sndₚ .map-tag (ptag , qtag) = qtag
+sndₚ .map-args (ptag , qtag) qargs = inj₂ qargs
+
+_&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
+(f &&& g) .map-tag rtag =  map-tag f rtag , map-tag g rtag
+(f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
+(f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
