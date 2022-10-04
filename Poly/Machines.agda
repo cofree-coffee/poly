@@ -54,5 +54,5 @@ map-tag latch = id
 map-args latch = _⊔_
 
 -- _ = {! step "David" "" helloMoore!}
--- 
+
 -- _ = {! process 0 (1 ∷ 2 ∷ 2 ∷ 4 ∷ 3 ∷ 1 ∷ []) latch !}
