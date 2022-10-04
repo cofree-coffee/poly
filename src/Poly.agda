@@ -40,16 +40,6 @@ MonomialExample ≡ i · yᵃ
 
 -}
 
-record Sigma (A : Set) (B : A → Set) : Set where
-  constructor MkSigma
-  field
-    fst : A
-    snd : B fst
-
-sigmaExample : Sigma ℕ (Vec Bool)
-Sigma.fst sigmaExample = 2
-Sigma.snd sigmaExample = true ∷ false ∷ []
-
 record Poly : Set where
   no-eta-equality
   constructor poly
@@ -62,6 +52,8 @@ open Poly public
 private variable
   A B C D S T I O : Set
   P Q R : Poly
+
+--------------------------------------------------------------------------------
 
 -- | S × Xᵀ
 monomial : Set → Set → Poly
