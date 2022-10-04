@@ -101,7 +101,7 @@ _◁_ : Poly → Poly → Poly
 (P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
 
 --------------------------------------------------------------------------------
--- The Parallel Product
+-- The Parallel Product of two Polynomials
 
 _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q

@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Misc where
+module Book.Misc where
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 

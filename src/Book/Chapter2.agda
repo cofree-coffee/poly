@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Chapter2 where
+module Book.Chapter2 where
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂; module ≡-Reasoning)
 open ≡-Reasoning
