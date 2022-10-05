@@ -78,3 +78,18 @@ is-zero : Moore Bool ℕ Bool
 is-zero .map-tag p = p
 is-zero .map-args false x = {!!}
 is-zero .map-args true x = {!!}
+
+--------------------------------------------------------------------------------
+-- A Mealy Machine for converting binary numbers to their 2's complement.
+
+data Bin : Set where
+  ⟨⟩ : Bin
+  _i : Bin → Bin
+  _o : Bin → Bin
+
+example : Bin
+example = ⟨⟩ i o i o o
+
+exampleResult : Bin
+exampleResult = ⟨⟩ o i i o o
+
