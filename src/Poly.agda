@@ -4,14 +4,8 @@ module Poly where
 --------------------------------------------------------------------------------
 
 open import Data.Sum
-open import Data.Bool hiding (T)
 open import Function
-open import Data.Fin hiding (_+_)
-open import Data.Nat hiding (_+_)
 open import Data.Product 
-import Data.String as String
-open import Data.Unit
-open import Data.Vec hiding (_++_)
 
 --------------------------------------------------------------------------------
 
