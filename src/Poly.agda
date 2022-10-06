@@ -3,49 +3,77 @@ module Poly where
 
 --------------------------------------------------------------------------------
 
+open import Data.Fin hiding (_+_)
+open import Data.Bool hiding (T)
 open import Data.Sum
+open import Data.Unit as Unit
 open import Function
 open import Data.Product 
 
 --------------------------------------------------------------------------------
-
-{-
-
-data P x = Foo x x x | Bar x x | Baz x | Qux
-
-P x ≡ x³ + x² + x + 0
-
-P x ≡ Σ [ i ∈ Fin 4 ] x^(a^i) 
-  where
-    a : Fin 4 → Set
-
-x^(a^i) ≡ a i → x
-
-
-data Q x = Foo x x x | Bar x x | Baz Bool x | Qux
-
-Q x ≡ x³ + x² + (2 · x) + x⁰
-
-Q x ≡ Σ[ i ∈ Fin 5 ] x^(a^i)
-
-type MonomialExample = (i, (y₁, y₂, ..., yₐ))
-
-MonomialExample ≡ i · yᵃ
-
--}
 
 record Poly : Set where
   no-eta-equality
   constructor poly
   field
     Tag : Set        -- I eg., Fin _
-    Args : Tag → Set -- a
+    Args : Tag → Set -- 
 
 open Poly public
 
 private variable
   A B C D S T I O : Set
   P Q R : Poly
+
+--------------------------------------------------------------------------------
+-- Examples
+
+-- | Building a monomial.
+--
+-- type MonomialExample = (i, (y₁, y₂, ..., yₐ))
+-- 
+-- MonomialExample ≡ i · yᵃ
+--
+-- m x ≡ x³ 
+m : {X : Set} → Poly
+(m {X}) .Tag = Fin 1
+(m {X}) .Args = λ where
+  zero → X × X × X
+
+-- | Building a Polynomial.
+--
+-- data P x = Foo x x x | Bar x x | Baz x | Qux
+-- 
+-- P x ≡ x³ + x² + x + 0
+-- 
+-- P x ≡ Σ [ i ∈ Fin 4 ] x^(a^i) 
+--   where
+--     a : Fin 4 → Set
+-- 
+-- x^(a^i) ≡ a i → x
+p : {X : Set} → Poly
+(p {X}) .Tag = Fin 4
+(p {X}) .Args  = λ where
+  zero →  X × X × X
+  (suc zero) →  X × X
+  (suc (suc zero)) →  X
+  (suc (suc (suc zero))) → Unit.⊤
+
+-- | Adding constants to a polynomial.
+--
+-- data Q x = Foo x x x | Bar x x | Baz Bool x | Qux
+-- 
+-- Q x ≡ x³ + x² + (2 · x) + x⁰
+-- 
+-- Q x ≡ Σ[ i ∈ Fin 5 ] x^(a^i)
+q : {X : Set} → Poly
+(q {X}) .Tag  = Fin 5
+(q {X}) .Args = λ where
+  zero →  X × X × X
+  (suc zero) → X × X
+  (suc (suc zero)) →  X
+  (suc (suc (suc zero))) →  X
+  (suc (suc (suc (suc zero)))) → Unit.⊤
 
 --------------------------------------------------------------------------------
 
