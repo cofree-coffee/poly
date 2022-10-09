@@ -26,9 +26,9 @@ private variable
 Machine : Set → Set → Set → Set → Set
 Machine S I J O = monomial (S × I) S ⇒ monomial O J
 
-mkMachine : (S × I → O) → (S × I → J → S) → Machine S I J O
-(mkMachine get put) .map-tag = get
-(mkMachine get put) .map-args = put
+mkMachine : (S → I → O) → (S → I → J → S) → Machine S I J O
+(mkMachine get put) .map-tag = uncurry get
+(mkMachine get put) .map-args = λ{ (s , i) j → put s i j }
 
 -- | Evaluate one step of a Machine with a given inputs @I@, @J@, and
 -- | state @S@.
