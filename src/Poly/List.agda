@@ -18,7 +18,7 @@ private variable
 --------------------------------------------------------------------------------
 
 listₚ : Poly
-listₚ .Tag  = ℕ
+listₚ .Tag = ℕ
 listₚ .Args n = Fin n
 
 List : Set → Set

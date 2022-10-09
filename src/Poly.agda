@@ -71,8 +71,8 @@ q : {X : Set} → Poly
 (q {X}) .Args = λ where
   zero →  X × X × X
   (suc zero) → X × X
-  (suc (suc zero)) →  X
-  (suc (suc (suc zero))) →  X
+  (suc (suc zero)) → X
+  (suc (suc (suc zero))) → X
   (suc (suc (suc (suc zero)))) → Unit.⊤
 
 --------------------------------------------------------------------------------
@@ -81,6 +81,8 @@ q : {X : Set} → Poly
 monomial : Set → Set → Poly
 (monomial S T) .Tag = S
 (monomial S T) .Args  = λ _ → T
+
+--------------------------------------------------------------------------------
 
 -- | Interpretation of a Poly as a Type
 ⟦_⟧ : Poly → Set → Set
@@ -110,28 +112,11 @@ _∘ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ∘ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
 
 --------------------------------------------------------------------------------
-
--- | Composition of Polyonomial Functors
--- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
--- Σ ? Π ?   ≡ Σ Π (Σ Π)
-_◁_ : Poly → Poly → Poly
-(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
-(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
-
---------------------------------------------------------------------------------
-
--- | The Parallel Product of two Polynomials
-_⊗_ : Poly → Poly → Poly
-(P ⊗ Q) .Tag  = Tag P × Tag Q
-(P ⊗ Q) .Args  (tagp , tagq) = Args P tagp × Args Q tagq
-
-_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
-(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
-(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
-
---------------------------------------------------------------------------------
+-- 1. Coproducts and distributive monoidal structures
 
 -- | The Categorical Co-Product of two Polyonomials
+--
+-- P + Q ≔ ∑[ I ∈ p(1) ] y^p[I] + ∑[ J ∈ q(1) ] q^p[J]
 _+_ : Poly → Poly → Poly
 (P + Q) .Tag = P .Tag ⊎ Q .Tag
 (P + Q) .Args (inj₁ x) = P .Args x
@@ -147,11 +132,42 @@ rightₚ : Q ⇒ (P + Q)
 rightₚ .map-tag = inj₂
 rightₚ .map-args tag = id
 
+-- | Co-Product eliminator
 eitherₚ : P ⇒ R → Q ⇒ R → (P + Q) ⇒ R
 eitherₚ f g .map-tag (inj₁ ptag) = f .map-tag ptag
 eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
 eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
 eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
+
+-- | For any symmetric monoidal product (I, ·) on Set, there is a
+-- corresponding symmetric monoidal structure (yᴵ , ⊙) on Poly, where
+-- the monoidal product given as follows
+--
+-- P ⊙ Q ≔ ∑[ (I, J) ∈ p(1) × q(1) ] y^p[I]∙q[J]
+-- _⊙_ : 
+
+--------------------------------------------------------------------------------
+
+-- | Composition of Polyonomial Functors
+-- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
+-- Σ ? Π ?   ≡ Σ Π (Σ Π)
+_◁_ : Poly → Poly → Poly
+(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
+(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
+
+--------------------------------------------------------------------------------
+
+-- | The Parallel Product of two Polynomials
+--
+-- P ⊗ Q ≔ ∑[ i ∈ p(1) ] ∑[ j ∈ q(1) ] y^p[i]×q[j]
+_⊗_ : Poly → Poly → Poly
+(P ⊗ Q) .Tag  = Tag P × Tag Q
+(P ⊗ Q) .Args  (tagp , tagq) = Args P tagp × Args Q tagq
+
+-- | 
+_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
+(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
+(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
 
 --------------------------------------------------------------------------------
 
