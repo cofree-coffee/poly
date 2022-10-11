@@ -202,9 +202,29 @@ _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Args  (ptag , qtag) = Args P ptag × Args Q qtag
 
 -- | The Parallel Product of natural transformations between polynomials.
-_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
-(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
-(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
+_***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
+(f *** g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
+(f *** g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
+
+first : P ⇒ Q → (P ⊗ R) ⇒ (Q ⊗ R)
+first p⇒q .map-tag (ptag , rtag) = map-tag p⇒q ptag , rtag
+first p⇒q .map-args (ptag , rtag) (pargs , rargs) = map-args p⇒q ptag pargs , rargs
+
+second : P ⇒ Q → (R ⊗ P) ⇒ (R ⊗ Q)
+second p⇒q .map-tag (rtag , ptag) = rtag , map-tag p⇒q ptag
+second p⇒q .map-args (rtag , ptag) (rargs , pargs) = rargs , map-args p⇒q ptag pargs
+
+left : P ⇒ Q → (P + R) ⇒ (Q + R)
+left p⇒q .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
+left p⇒q .map-tag (inj₂ rtag) = inj₂ rtag
+left p⇒q .map-args (inj₁ ptag) args = map-args p⇒q ptag args
+left p⇒q .map-args (inj₂ rtag) args = args
+
+right : P ⇒ Q → (R + P) ⇒ (R + Q)
+right p⇒q .map-tag (inj₁ rtag) = inj₁ rtag
+right p⇒q .map-tag (inj₂ ptag) = inj₂ (map-tag p⇒q ptag)
+right p⇒q .map-args (inj₁ rtag) args = args
+right p⇒q .map-args (inj₂ ptag) args = map-args p⇒q ptag args
 
 -- | P ∨ Q
 --
