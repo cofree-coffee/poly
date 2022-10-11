@@ -4,26 +4,60 @@ module Poly where
 --------------------------------------------------------------------------------
 
 open import Data.Fin hiding (_+_)
-open import Data.Bool hiding (T)
+open import Data.Bool hiding (T; _∨_)
 open import Data.Sum
 open import Data.Unit as Unit
 open import Function
 open import Data.Product 
 
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; cong)
+open Eq.≡-Reasoning
+
 --------------------------------------------------------------------------------
 
+
+--------------------------------------------------------------------------------
+
+-- A polynomial functor @p : Set → Set@ is any functor that is
+-- isomorphic to a coproduct of representables, morphisms between them
+-- is a natural transformation; the category is denoted @Poly@.
+--
+-- * A note on notation 
+-- In David Spivak's work we typically see what the following
+-- notation, which he calls Standard Form:
+--
+-- p ≔ Σ[ i ∈ p(1) ] y^p[i]
+--
+-- where @p(1)@ denotes a @P .Tag@ and @p[i]@ denotes the function @P .Args i@.
+--
+-- We prefer the following equivalent form, as it more closely matches
+-- agda's sigma syntax, which will be used henceforth:
+--
+-- p x ≔ Σ[ i ∈ I ] x^aᵢ
+--
+-- I is thus @P .Tag@ and @aᵢ@ is @P .Args i@.
 record Poly : Set where
   no-eta-equality
   constructor poly
   field
-    Tag : Set        -- I eg., Fin _
-    Args : Tag → Set -- 
+    Tag : Set
+    Args : Tag → Set
 
 open Poly public
 
 private variable
   A B C D S T I O : Set
   P Q R : Poly
+
+--------------------------------------------------------------------------------
+
+-- | Interpretation of a Poly as a functor @Set → Set@
+⟦_⟧ : Poly → (Set → Set)
+⟦ P ⟧ X = Σ[ tag ∈ P .Tag ] (P .Args tag → X)
+
+mapₚ : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
+mapₚ f (tag , args) = tag , λ x → f (args x)
 
 --------------------------------------------------------------------------------
 -- Examples
@@ -35,6 +69,8 @@ private variable
 -- MonomialExample ≡ i · yᵃ
 --
 -- m x ≡ x³ 
+--
+-- m x ≡ Σ[ i ∈ Fin 1 ] ((i → Set) → x)  
 m : {X : Set} → Poly
 (m {X}) .Tag = Fin 1
 (m {X}) .Args = λ where
@@ -46,11 +82,11 @@ m : {X : Set} → Poly
 -- 
 -- P x ≡ x³ + x² + x + 0
 -- 
--- P x ≡ Σ [ i ∈ Fin 4 ] x^(a^i) 
+-- P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
 --   where
 --     a : Fin 4 → Set
 -- 
--- x^(a^i) ≡ a i → x
+-- x^(aᵢ) ≡ a i → x
 p : {X : Set} → Poly
 (p {X}) .Tag = Fin 4
 (p {X}) .Args  = λ where
@@ -59,13 +95,17 @@ p : {X : Set} → Poly
   (suc (suc zero)) →  X
   (suc (suc (suc zero))) → Unit.⊤
 
+-- | P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
+_ : ∀ {X : Set} → (⟦ p {X = X} ⟧ X) ≡ (Σ[ i ∈ Fin 4 ] (p .Args i → X))
+_ = refl
+
 -- | Adding constants to a polynomial.
 --
 -- data Q x = Foo x x x | Bar x x | Baz Bool x | Qux
 -- 
 -- Q x ≡ x³ + x² + (2 · x) + x⁰
 -- 
--- Q x ≡ Σ[ i ∈ Fin 5 ] x^(a^i)
+-- Q x ≡ Σ[ i ∈ Fin 5 ] x^aᵢ
 q : {X : Set} → Poly
 (q {X}) .Tag  = Fin 5
 (q {X}) .Args = λ where
@@ -83,14 +123,6 @@ monomial : Set → Set → Poly
 (monomial S T) .Args  = λ _ → T
 
 --------------------------------------------------------------------------------
-
--- | Interpretation of a Poly as a Type
-⟦_⟧ : Poly → Set → Set
-⟦ P ⟧ X = Σ[ tag ∈ P .Tag ] (P .Args tag → X)
-
--- | All interpretations of Polys are Functors
-pmap : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
-pmap f (tag , args) = tag , λ x → f (args x)
 
 -- | A map between two Polynomials
 record _⇒_ (P Q : Poly) : Set where
@@ -112,11 +144,10 @@ _∘ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ∘ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
 
 --------------------------------------------------------------------------------
--- 1. Coproducts and distributive monoidal structures
 
 -- | The Categorical Co-Product of two Polyonomials
 --
--- P + Q ≔ ∑[ I ∈ p(1) ] y^p[I] + ∑[ J ∈ q(1) ] q^p[J]
+-- P + Q ≔ ∑[ j ∈ I ] x^aᵢ + ∑[ j ∈ J ] y^bⱼ
 _+_ : Poly → Poly → Poly
 (P + Q) .Tag = P .Tag ⊎ Q .Tag
 (P + Q) .Args (inj₁ x) = P .Args x
@@ -139,39 +170,12 @@ eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
 eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
 eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
 
--- | For any symmetric monoidal product (I, ·) on Set, there is a
--- corresponding symmetric monoidal structure (yᴵ , ⊙) on Poly, where
--- the monoidal product given as follows
+--------------------------------------------------------------------------------
+-- Symmetric Monoidal Products on Poly
+
+-- | P × Q
 --
--- P ⊙ Q ≔ ∑[ (I, J) ∈ p(1) × q(1) ] y^p[I]∙q[J]
--- _⊙_ : 
-
---------------------------------------------------------------------------------
-
--- | Composition of Polyonomial Functors
--- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
--- Σ ? Π ?   ≡ Σ Π (Σ Π)
-_◁_ : Poly → Poly → Poly
-(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
-(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
-
---------------------------------------------------------------------------------
-
--- | The Parallel Product of two Polynomials
---
--- P ⊗ Q ≔ ∑[ i ∈ p(1) ] ∑[ j ∈ q(1) ] y^p[i]×q[j]
-_⊗_ : Poly → Poly → Poly
-(P ⊗ Q) .Tag  = Tag P × Tag Q
-(P ⊗ Q) .Args  (tagp , tagq) = Args P tagp × Args Q tagq
-
--- | 
-_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
-(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
-(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
-
---------------------------------------------------------------------------------
-
--- | The Categorical Product of two Polynomials
+-- Σ[ (i , j) ∈ P .Tag × Q .Tag ] x^(aᵢ + bⱼ)
 _×ₚ_ : Poly → Poly → Poly
 (P ×ₚ Q) .Tag  =  P .Tag × Q .Tag
 (P ×ₚ Q) .Args (ptag , qtag) = P .Args ptag ⊎ Q .Args qtag
@@ -188,3 +192,36 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-tag rtag =  map-tag f rtag , map-tag g rtag
 (f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
 (f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
+
+-- | P ⊗ Q
+-- Also called the Parallel Product of two Polynomials
+--
+-- P ⊗ Q ≔ ∑[ i ∈ P .Tag Q .Tag ] y^(aᵢ × bⱼ)
+_⊗_ : Poly → Poly → Poly
+(P ⊗ Q) .Tag  = Tag P × Tag Q
+(P ⊗ Q) .Args  (ptag , qtag) = Args P ptag × Args Q qtag
+
+-- | The Parallel Product of natural transformations between polynomials.
+_⊗₁_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
+(f ⊗₁ g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
+(f ⊗₁ g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
+
+-- | P ∨ Q
+--
+-- NOTE: This is figure 7 from https://arxiv.org/pdf/2202.00534.pdf
+-- and not figure 45.
+--
+-- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ ∨ bⱼ)
+_∨_ : Poly → Poly → Poly
+(P ∨ Q) .Tag = P .Tag × Q .Tag
+(P ∨ Q) .Args = λ where
+  (ptag , qtag) →  Args P ptag ⊎ (Args P ptag × Args Q qtag) ⊎ Args Q qtag
+
+--------------------------------------------------------------------------------
+
+-- | Composition of Polyonomial Functors
+-- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
+-- Σ ? Π ?   ≡ Σ Π (Σ Π)
+_◁_ : Poly → Poly → Poly
+(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
+(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
