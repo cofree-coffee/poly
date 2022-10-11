@@ -48,7 +48,7 @@ open Poly public
 
 private variable
   A B C D S T I O : Set
-  P Q R : Poly
+  P Q R Z : Poly
 
 --------------------------------------------------------------------------------
 
@@ -146,6 +146,9 @@ _⨟_ : P ⇒ Q → Q ⇒ R → P ⇒ R
 _∘ₚ_ : Q ⇒ R → P ⇒ Q → P ⇒ R
 q⇒r ∘ₚ p⇒q = p⇒q ⨟ q⇒r
 
+dimap-⇒ : Q ⇒ R → Z ⇒ P → P ⇒ Q → Z ⇒ R
+dimap-⇒ q⇒r z⇒p p⇒q = z⇒p ⨟ (p⇒q ⨟ q⇒r)
+
 --------------------------------------------------------------------------------
 
 -- | The Categorical Co-Product of two Polyonomials
@@ -190,6 +193,11 @@ fstₚ .map-args (ptag , qtag) pargs = inj₁ pargs
 sndₚ : (P ×ₚ Q) ⇒ Q
 sndₚ .map-tag (ptag , qtag) = qtag
 sndₚ .map-args (ptag , qtag) qargs = inj₂ qargs
+
+swapₚ : (P ×ₚ Q) ⇒ (Q ×ₚ P)
+swapₚ .map-tag (ptag , qtag) = qtag , ptag
+swapₚ .map-args (ptag , qtag) (inj₁ qargs) = inj₂ qargs
+swapₚ .map-args (ptag , qtag) (inj₂ pargs) = inj₁ pargs
 
 _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-tag rtag =  map-tag f rtag , map-tag g rtag
