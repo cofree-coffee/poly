@@ -50,4 +50,4 @@ projᵣ = lens proj₂ λ where
 --------------------------------------------------------------------------------
 
 example : Bool
-example = view (projₗ ∘ₚ projᵣ) ((true , false) , false)
+example = view (projₗ ⨟ projᵣ) ((true , false) , false)
