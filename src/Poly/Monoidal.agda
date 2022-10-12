@@ -20,6 +20,7 @@ private variable
 -- | The Categorical Co-Product of two Polyonomials
 --
 -- P + Q ≔ ∑[ j ∈ I ] x^aᵢ + ∑[ j ∈ J ] y^bⱼ
+infixr 4 _+_
 _+_ : Poly → Poly → Poly
 (P + Q) .Tag = P .Tag ⊎ Q .Tag
 (P + Q) .Args (inj₁ x) = P .Args x
@@ -97,3 +98,14 @@ _Ⓥ_ : Poly → Poly → Poly
 (P Ⓥ Q) .Tag = P .Tag × Q .Tag
 (P Ⓥ Q) .Args = λ where
   (ptag , qtag) →  Args P ptag ⊎ (Args P ptag × Args Q qtag) ⊎ Args Q qtag
+
+--------------------------------------------------------------------------------
+
+-- | P ∨ Q
+--
+-- P ∨ Q ≔ P + (P ⊗ Q) + Q
+_∨_ :  Poly → Poly → Poly
+(P ∨ Q) .Tag = P .Tag ⊎ (P ⊗ Q) .Tag ⊎ Q .Tag
+(P ∨ Q) .Args (inj₁ ptag) =  Args P ptag
+(P ∨ Q) .Args (inj₂ (inj₁ tags)) = Args (P ⊗ Q) tags
+(P ∨ Q) .Args (inj₂ (inj₂ qtag)) = Args Q qtag
