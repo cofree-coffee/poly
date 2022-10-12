@@ -21,7 +21,7 @@ private variable
 -- The Categorical Co-Product of two Polyonomials
 --
 -- P + Q ≔ ∑[ j ∈ I ] x^aᵢ + ∑[ j ∈ J ] y^bⱼ
-infixr 4 _+_
+infixr 6 _+_
 _+_ : Poly → Poly → Poly
 (P + Q) .Tag = P .Tag ⊎ Q .Tag
 (P + Q) .Args (inj₁ x) = P .Args x
@@ -59,16 +59,20 @@ _◁_ : Poly → Poly → Poly
 
 -- | P × Q
 --
+-- The Binary Categorical Product
+--
 -- Σ[ (i , j) ∈ P .Tag × Q .Tag ] x^(aᵢ + bⱼ)
-infixr 4 _×ₚ_
+infixr 7 _×ₚ_
 _×ₚ_ : Poly → Poly → Poly
 (P ×ₚ Q) .Tag  =  P .Tag × Q .Tag
 (P ×ₚ Q) .Args (ptag , qtag) = P .Args ptag ⊎ Q .Args qtag
 
+-- | _×ₚ_ fst eliminator
 fst-×ₚ : (P ×ₚ Q) ⇒ P
 fst-×ₚ .map-tag (ptag , qtag) = ptag
 fst-×ₚ .map-args (ptag , qtag) pargs = inj₁ pargs
 
+-- | _×ₚ_ snd eliminator
 snd-×ₚ : (P ×ₚ Q) ⇒ Q
 snd-×ₚ .map-tag (ptag , qtag) = qtag
 snd-×ₚ .map-args (ptag , qtag) qargs = inj₂ qargs
@@ -89,17 +93,17 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 -- Also called the Parallel Product of two Polynomials
 --
 -- P ⊗ Q ≔ ∑[ i ∈ P .Tag Q .Tag ] y^(aᵢ × bⱼ)
-infixr 4 _⊗_
+infixr 7 _⊗_
 _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q
-(P ⊗ Q) .Args  (ptag , qtag) = Args P ptag × Args Q qtag
+(P ⊗ Q) .Args (ptag , qtag) = Args P ptag × Args Q qtag
 
-swap-⊗ : (P ⊗ Q) ⇒ (Q ⊗ P)
+swap-⊗ : P ⊗ Q ⇒ Q ⊗ P
 swap-⊗ .map-tag (ptag , qtag) = qtag , ptag
 swap-⊗ .map-args tag (qargs , pargs) = pargs , qargs
 
 -- | The Parallel Product of natural transformations between polynomials.
-_***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
+_***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → P ⊗ Q ⇒ R ⊗ S
 (f *** g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
 (f *** g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
 
@@ -108,7 +112,7 @@ _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
 -- | P Ⓥ Q
 --
 -- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ Ⓥ bⱼ)
-infixr 4 _Ⓥ_
+infixr 8 _Ⓥ_
 _Ⓥ_ : Poly → Poly → Poly
 (P Ⓥ Q) .Tag = P .Tag × Q .Tag
 (P Ⓥ Q) .Args = λ where
@@ -119,7 +123,7 @@ _Ⓥ_ : Poly → Poly → Poly
 -- | P ∨ Q
 --
 -- P ∨ Q ≔ P + (P ⊗ Q) + Q
-infixr 4 _∨_
+infixr 5 _∨_
 _∨_ :  Poly → Poly → Poly
 P ∨ Q = P + (P ⊗ Q) + Q
 

@@ -122,6 +122,7 @@ monomial : Set → Set → Poly
 --------------------------------------------------------------------------------
 
 -- | A map between two Polynomials
+infixr 0 _⇒_
 record _⇒_ (P Q : Poly) : Set where
   no-eta-equality
   constructor poly-map
