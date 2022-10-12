@@ -18,7 +18,13 @@ private variable
 
 -- | _⇒_ is a Profunctor
 dimap-⇒ : Q ⇒ R → Z ⇒ P → P ⇒ Q → Z ⇒ R
-dimap-⇒ q⇒r z⇒p p⇒q = z⇒p ⨟ (p⇒q ⨟ q⇒r)
+dimap-⇒ q⇒r z⇒p p⇒q = z⇒p ⨟ₚ p⇒q ⨟ₚ q⇒r
+
+rmap-⇒ : Q ⇒ R → P ⇒ Q → P ⇒ R
+rmap-⇒ q⇒r p⇒q = dimap-⇒ q⇒r idₚ p⇒q
+
+lmap-⇒ : Z ⇒ P → P ⇒ Q → Z ⇒ Q
+lmap-⇒ z⇒p p⇒q = dimap-⇒ idₚ z⇒p p⇒q
 
 first : P ⇒ Q → (P ⊗ R) ⇒ (Q ⊗ R)
 first p⇒q .map-tag (ptag , rtag) = map-tag p⇒q ptag , rtag

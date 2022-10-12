@@ -143,9 +143,11 @@ open _⇒_ public
 _⟨$⟩_ : P ⇒ Q → ⟦ P ⟧ A → ⟦ Q ⟧ A
 p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p⇒q tag qargs)
 
-_⨟_ : P ⇒ Q → Q ⇒ R → P ⇒ R
-(p⇒q ⨟ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
-(p⇒q ⨟ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
+idₚ : P ⇒ P
+idₚ .map-tag tag = tag
+idₚ .map-args tag args = args
 
-_∘ₚ_ : Q ⇒ R → P ⇒ Q → P ⇒ R
-q⇒r ∘ₚ p⇒q = p⇒q ⨟ q⇒r
+infixr 4 _⨟ₚ_
+_⨟ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
+(p⇒q ⨟ₚ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
+(p⇒q ⨟ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
