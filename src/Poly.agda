@@ -6,7 +6,8 @@ module Poly where
 open import Data.Fin hiding (_+_)
 open import Data.Bool hiding (T; _∨_)
 open import Data.Sum
-open import Data.Unit as Unit
+open import Data.Unit using (⊤)
+open import Data.Empty using (⊥)
 open import Function
 open import Data.Product 
 
@@ -90,7 +91,7 @@ p : {X : Set} → Poly
   zero →  X × X × X
   (suc zero) →  X × X
   (suc (suc zero)) →  X
-  (suc (suc (suc zero))) → Unit.⊤
+  (suc (suc (suc zero))) → ⊤
 
 -- | P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
 _ : ∀ {X : Set} → (⟦ p {X = X} ⟧ X) ≡ (Σ[ i ∈ Fin 4 ] (p .Args i → X))
@@ -110,7 +111,7 @@ q : {X : Set} → Poly
   (suc zero) → X × X
   (suc (suc zero)) → X
   (suc (suc (suc zero))) → X
-  (suc (suc (suc (suc zero)))) → Unit.⊤
+  (suc (suc (suc (suc zero)))) → ⊤
 
 --------------------------------------------------------------------------------
 
@@ -118,6 +119,16 @@ q : {X : Set} → Poly
 monomial : Set → Set → Poly
 (monomial S T) .Tag = S
 (monomial S T) .Args  = λ _ → T
+
+-- | S × X⁰
+constant : Set → Poly
+constant S = monomial S ⊥
+
+-- | The variable X.
+--
+-- ⟦ 𝐗 ⟧ = id
+𝐗 : Poly
+𝐗 = monomial ⊤ ⊤
 
 --------------------------------------------------------------------------------
 
