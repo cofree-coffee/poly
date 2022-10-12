@@ -127,6 +127,31 @@ infixr 5 _∨_
 _∨_ :  Poly → Poly → Poly
 P ∨ Q = P + (P ⊗ Q) + Q
 
+-- | _∨_ This Inclusion
+This : P ⇒ (P ∨ Q)
+This .map-tag ptag = inj₁ ptag
+This .map-args ptag = id
+
+-- | _∨_ That Inclusion
+That : Q ⇒ (P ∨ Q)
+That .map-tag qtag = inj₂ (inj₂ qtag)
+That .map-args qtag = id
+
+-- | _∨_ These Inclusion
+These : (P ⊗ Q) ⇒ (P ∨ Q)
+These .map-tag tags = inj₂ (inj₁ tags)
+These .map-args tags = id
+
+-- | _∨_ Eliminator
+theseₚ : P ⇒ R → Q ⇒ R → (P ⊗ Q) ⇒ R → (P ∨ Q) ⇒ R
+(theseₚ p⇒r q⇒r pq⇒r) .map-tag  (inj₁ ptag) = map-tag p⇒r ptag
+(theseₚ p⇒r q⇒r pq⇒r) .map-tag (inj₂ (inj₁ tags)) = map-tag pq⇒r tags
+(theseₚ p⇒r q⇒r pq⇒r) .map-tag (inj₂ (inj₂ qtag)) = map-tag q⇒r qtag
+(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₁ ptag) args = map-args p⇒r ptag args
+(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₂ (inj₁ tags)) args = map-args pq⇒r tags args
+(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₂ (inj₂ qtag)) args = map-args q⇒r qtag args
+--theseₚ p⇒r q⇒r pq⇒r = {!!}
+
 --------------------------------------------------------------------------------
 
 -- | ‌P ⊘ Q
