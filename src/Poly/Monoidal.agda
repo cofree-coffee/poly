@@ -90,13 +90,10 @@ _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
 
 --------------------------------------------------------------------------------
 
--- | P ∨ₘ Q
+-- | P Ⓥ  Q
 --
--- NOTE: This is figure 7 from https://arxiv.org/pdf/2202.00534.pdf
--- and not figure 45.
---
--- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ ∨ₘ bⱼ)
-_∨ₘ_ : Poly → Poly → Poly
-(P ∨ₘ Q) .Tag = P .Tag × Q .Tag
-(P ∨ₘ Q) .Args = λ where
+-- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ Ⓥ bⱼ)
+_Ⓥ_ : Poly → Poly → Poly
+(P Ⓥ Q) .Tag = P .Tag × Q .Tag
+(P Ⓥ Q) .Args = λ where
   (ptag , qtag) →  Args P ptag ⊎ (Args P ptag × Args Q qtag) ⊎ Args Q qtag
