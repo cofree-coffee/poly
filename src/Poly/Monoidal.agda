@@ -87,6 +87,11 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
 (f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
 
+-- | p ×ₚ q can be recovered as Product Bool (if _ then q else p)
+Product : (I : Set) → (I → Poly) → Poly
+(Product I f) .Tag = ∀ (i : I) → f i .Tag
+(Product I f) .Args tags = Σ[ i ∈ I ] (f i) .Args (tags i)
+
 --------------------------------------------------------------------------------
 
 -- | P ⊗ Q
