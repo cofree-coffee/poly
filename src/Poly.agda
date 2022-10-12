@@ -56,13 +56,6 @@ private variable
 mapₚ : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
 mapₚ f (tag , args) = tag , λ x → f (args x)
 
--- | Composition of Polyonomial Functors
--- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
--- Σ ? Π ?   ≡ Σ Π (Σ Π)
-_◁_ : Poly → Poly → Poly
-(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
-(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
-
 --------------------------------------------------------------------------------
 -- Examples
 

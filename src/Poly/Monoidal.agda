@@ -17,7 +17,8 @@ private variable
 
 --------------------------------------------------------------------------------
 
--- | The Categorical Co-Product of two Polyonomials
+-- | P + Q
+-- The Categorical Co-Product of two Polyonomials
 --
 -- P + Q ≔ ∑[ j ∈ I ] x^aᵢ + ∑[ j ∈ J ] y^bⱼ
 infixr 4 _+_
@@ -45,9 +46,21 @@ eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
 
 --------------------------------------------------------------------------------
 
+-- | P ◁ Q
+-- Composition of Polyonomial Functors
+--
+-- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
+-- Σ ? Π ?   ≡ Σ Π (Σ Π)
+_◁_ : Poly → Poly → Poly
+(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
+(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
+
+--------------------------------------------------------------------------------
+
 -- | P × Q
 --
 -- Σ[ (i , j) ∈ P .Tag × Q .Tag ] x^(aᵢ + bⱼ)
+infixr 4 _×ₚ_
 _×ₚ_ : Poly → Poly → Poly
 (P ×ₚ Q) .Tag  =  P .Tag × Q .Tag
 (P ×ₚ Q) .Args (ptag , qtag) = P .Args ptag ⊎ Q .Args qtag
@@ -76,6 +89,7 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 -- Also called the Parallel Product of two Polynomials
 --
 -- P ⊗ Q ≔ ∑[ i ∈ P .Tag Q .Tag ] y^(aᵢ × bⱼ)
+infixr 4 _⊗_
 _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q
 (P ⊗ Q) .Args  (ptag , qtag) = Args P ptag × Args Q qtag
@@ -91,9 +105,10 @@ _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → (P ⊗ Q) ⇒ (R ⊗ S)
 
 --------------------------------------------------------------------------------
 
--- | P Ⓥ  Q
+-- | P Ⓥ Q
 --
 -- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ Ⓥ bⱼ)
+infixr 4 _Ⓥ_
 _Ⓥ_ : Poly → Poly → Poly
 (P Ⓥ Q) .Tag = P .Tag × Q .Tag
 (P Ⓥ Q) .Args = λ where
@@ -104,8 +119,24 @@ _Ⓥ_ : Poly → Poly → Poly
 -- | P ∨ Q
 --
 -- P ∨ Q ≔ P + (P ⊗ Q) + Q
+infixr 4 _∨_
 _∨_ :  Poly → Poly → Poly
-(P ∨ Q) .Tag = P .Tag ⊎ (P ⊗ Q) .Tag ⊎ Q .Tag
-(P ∨ Q) .Args (inj₁ ptag) =  Args P ptag
-(P ∨ Q) .Args (inj₂ (inj₁ tags)) = Args (P ⊗ Q) tags
-(P ∨ Q) .Args (inj₂ (inj₂ qtag)) = Args Q qtag
+P ∨ Q = P + (P ⊗ Q) + Q
+
+--------------------------------------------------------------------------------
+
+-- | ‌P ⊘ Q
+--
+-- P ⊘ Q ≔ P + (P ×ₚ Q) + Q
+infixr 4 _⊘_
+_⊘_ : Poly → Poly → Poly
+P ⊘ Q = P + (P ×ₚ Q) + Q
+
+--------------------------------------------------------------------------------
+
+-- | ‌P ⊛ Q
+--
+-- P ⊛ Q ≔  P + (P Ⓥ Q) + Q
+infixr 4 _⊛_
+_⊛_ : Poly → Poly → Poly
+P ⊛ Q = P + (P Ⓥ Q) + Q
