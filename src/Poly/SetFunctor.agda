@@ -1,6 +1,7 @@
 module Poly.SetFunctor where
 
 open import Level using (Level; suc; _⊔_)
+open import Data.Product
 open import Function.Base using (id ; _∘_)
 open import Effect.Functor
 open import Relation.Binary
@@ -37,3 +38,6 @@ module _ {a b : Level} where
 
 exp : ∀ {a b} → (F G : Set a → Set (suc a ⊔ b)) → Set a → Set (suc a ⊔ b)
 exp F G A = ∀ {B C} → (A → B → C) → F B → G C
+
+day : ∀ {a b} → (F G : Set a → Set (suc a ⊔ b)) → Set a → Set (suc a ⊔ b)
+day F G A = ∃[ B ] ∃[ C ] (B → C → A) × F B × G C

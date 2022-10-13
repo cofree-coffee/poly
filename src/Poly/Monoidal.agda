@@ -6,6 +6,7 @@ module Poly.Monoidal where
 
 open import Data.Product 
 open import Data.Sum
+open import Data.Unit.Base using (⊤; tt)
 open import Function
 open import Poly
 open import Poly.SetFunctor
@@ -141,11 +142,10 @@ _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → P ⊗ Q ⇒ R ⊗ S
 (f *** g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
 (f *** g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
 
--- | The parallel product doesn't have a general counterpart on Set endofunctors.
---
--- It is somewhat related to functor composition.
-⟦⟧-⊗-↝ : ⟦ P ⊗ Q ⟧ ↝ ⟦ P ⟧ ∘ ⟦ Q ⟧
-⟦⟧-⊗-↝ ((ptag , qtag) , f) = ptag , λ pargs → qtag , λ qargs → f (pargs , qargs)
+-- | The parallel product represents day convolution.
+⟦⟧-⊗ : ⟦ P ⊗ Q ⟧ ≃ day ⟦ P ⟧ ⟦ Q ⟧
+⟦⟧-⊗ {P = P} {Q = Q} .to ((ptag , qtag) , f) = P .Args ptag , Q .Args qtag , (λ pargs qargs → f (pargs , qargs)) , (ptag , id) , (qtag , id)
+⟦⟧-⊗ .from (B , C , f , (ptag , b) , (qtag , c)) = (ptag , qtag) , λ (pargs , qargs) → f (b pargs) (c qargs)
 
 --------------------------------------------------------------------------------
 
