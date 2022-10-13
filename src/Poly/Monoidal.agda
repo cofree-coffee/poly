@@ -52,13 +52,16 @@ Sum : (I : Set) → (I → Poly) → Poly
 Sum I P .Tag = ∃[ i ] P i .Tag
 Sum I P .Args (i , ptag) = P i .Args ptag
 
-⟦⟧-+ : ⟦ P + Q ⟧ ≃ (λ X → ⟦ P ⟧ X ⊎ ⟦ Q ⟧ X)
+infix 2 Sum
+syntax Sum I (λ i → P) = Σₚ[ i ∈ I ] P
+
+⟦⟧-+ : ⟦ P + Q ⟧ ≃ ⟦ P ⟧ +₁ ⟦ Q ⟧
 ⟦⟧-+ .to (inj₁ ptag , x) = inj₁ (ptag , x)
 ⟦⟧-+ .to (inj₂ qtag , y) = inj₂ (qtag , y)
 ⟦⟧-+ .from (inj₁ (ptag , x)) = inj₁ ptag , x
 ⟦⟧-+ .from (inj₂ (qtag , y)) = inj₂ qtag , y
 
-⟦⟧-Sum : {I : Set} → {P : I → Poly} → ⟦ Sum I P ⟧ ≃ λ X → ∃[ i ] ⟦ P i ⟧ X
+⟦⟧-Sum : {I : Set} → {P : I → Poly} → ⟦ Σₚ[ i ∈ I ] (P i) ⟧ ≃ (Σ₁[ i ∈ I ] ⟦ P i ⟧)
 ⟦⟧-Sum .to ((i , ptag) , f) = i , ptag , f
 ⟦⟧-Sum .from (i , ptag , f) = (i , ptag) , f
 
@@ -109,7 +112,7 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
 (f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
 
-⟦⟧-×ₚ : ⟦ P ×ₚ Q ⟧ ≃ (λ X → ⟦ P ⟧ X × ⟦ Q ⟧ X)
+⟦⟧-×ₚ : ⟦ P ×ₚ Q ⟧ ≃ ⟦ P ⟧ ×₁ ⟦ Q ⟧
 ⟦⟧-×ₚ .to ((ptag , qtag) , f) = (ptag , λ pargs → f (inj₁ pargs)) , (qtag , λ qargs → f (inj₂ qargs))
 ⟦⟧-×ₚ .from ((ptag , f) , (qtag , g)) = (ptag , qtag) , [ f , g ]
 
@@ -118,7 +121,10 @@ Product : (I : Set) → (I → Poly) → Poly
 (Product I f) .Tag = ∀ (i : I) → f i .Tag
 (Product I f) .Args tags = Σ[ i ∈ I ] (f i) .Args (tags i)
 
-⟦⟧-Product : {I : Set} {P : I → Poly} → ⟦ Product I P ⟧ ≃ (λ X → (i : I) → ⟦ P i ⟧ X)
+infix 2 Product
+syntax Product I (λ i → P) = Πₚ[ i ∈ I ] P
+
+⟦⟧-Product : {I : Set} {P : I → Poly} → ⟦ Πₚ[ i ∈ I ] P i ⟧ ≃ (Π₁[ i ∈ I ] ⟦ P i ⟧)
 ⟦⟧-Product .to (ptag , f) i = ptag i , λ pargs → f (i , pargs)
 ⟦⟧-Product .from f = proj₁ ∘ f , λ (i , pargs) → proj₂ (f i) pargs
 

@@ -167,7 +167,7 @@ polymap : ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
 polymap f .map-tag ptag = proj₁ (f (ptag , id))
 polymap f .map-args ptag qargs = proj₂ (f (ptag , id)) qargs
 
-⟦⟧-monomial : ⟦ monomial S T ⟧ ≡ (λ A → S × (T → A))
+⟦⟧-monomial : ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
 ⟦⟧-monomial = refl
 
 open _≃_
@@ -176,10 +176,10 @@ open _≃_
 ⟦⟧-𝐗 .to (_ , f) = f tt
 ⟦⟧-𝐗 .from x = tt , λ _ → x
 
-⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ (λ X → T → X)
+⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ Morphism T
 ⟦⟧-𝐗^ .to (_ , f) = f
 ⟦⟧-𝐗^ .from = tt ,_
 
-⟦⟧-constant : ⟦ constant S ⟧ ≃ (λ _ → S)
+⟦⟧-constant : ⟦ constant S ⟧ ≃ const S
 ⟦⟧-constant .to (s , _) = s
 ⟦⟧-constant .from = _, λ()
