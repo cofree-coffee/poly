@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+{-# OPTIONS --type-in-type --allow-unsolved-metas #-}
 module Poly.Map where
 
 --------------------------------------------------------------------------------
@@ -22,12 +22,12 @@ private variable
 
 --------------------------------------------------------------------------------
 
-mapₚ : (K : Set) → Poly
-(mapₚ K) .Tag = K → Bool
-mapₚ K .Args = λ k→bool →  Σ[ k ∈ K ] B.T (k→bool k)
+Mapₚ : (K : Set) → Poly
+(Mapₚ K) .Tag = K → Bool
+Mapₚ K .Args = λ k→bool →  Σ[ k ∈ K ] B.T (k→bool k)
 
 Map : (K : Set) → (V : Set) → Set
-Map K V = ⟦ mapₚ K ⟧ V
+Map K V = ⟦ Mapₚ K ⟧ V
 
 lookup : Map K V → K → Maybe V 
 lookup (k→Bool , getter) k with k→Bool k in eq

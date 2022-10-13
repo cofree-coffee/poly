@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+{-# OPTIONS --type-in-type --allow-unsolved-metas #-}
 -- | The Co-Product of Representables Encoding of Poly
 module Poly.Rep where
 
