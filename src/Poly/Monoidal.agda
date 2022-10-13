@@ -8,6 +8,9 @@ open import Data.Product
 open import Data.Sum
 open import Function
 open import Poly
+open import Poly.SetFunctor
+
+open _≃_
 
 --------------------------------------------------------------------------------
 
@@ -44,16 +47,34 @@ eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
 eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
 eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
 
+Sum : (I : Set) → (I → Poly) → Poly
+Sum I P .Tag = ∃[ i ] P i .Tag
+Sum I P .Args (i , ptag) = P i .Args ptag
+
+⟦⟧-+ : ⟦ P + Q ⟧ ≃ (λ X → ⟦ P ⟧ X ⊎ ⟦ Q ⟧ X)
+⟦⟧-+ .to (inj₁ ptag , x) = inj₁ (ptag , x)
+⟦⟧-+ .to (inj₂ qtag , y) = inj₂ (qtag , y)
+⟦⟧-+ .from (inj₁ (ptag , x)) = inj₁ ptag , x
+⟦⟧-+ .from (inj₂ (qtag , y)) = inj₂ qtag , y
+
+⟦⟧-Sum : {I : Set} → {P : I → Poly} → ⟦ Sum I P ⟧ ≃ λ X → ∃[ i ] ⟦ P i ⟧ X
+⟦⟧-Sum .to ((i , ptag) , f) = i , ptag , f
+⟦⟧-Sum .from (i , ptag , f) = (i , ptag) , f
+
 --------------------------------------------------------------------------------
 
 -- | P ◁ Q
 -- Composition of Polyonomial Functors
 --
--- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ (⟦ Q ⟧ A)
+-- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ ∘ ⟦ Q ⟧
 -- Σ ? Π ?   ≡ Σ Π (Σ Π)
 _◁_ : Poly → Poly → Poly
 (P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
 (P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
+
+⟦⟧-◁ : ⟦ P ◁ Q ⟧ ≃ ⟦ P ⟧ ∘ ⟦ Q ⟧
+⟦⟧-◁ .to ((ptag , qtag) , f) = ptag , λ pargs → qtag pargs , λ qargs → f (pargs , qargs)
+⟦⟧-◁ .from (ptag , f) = (ptag , λ pargs → proj₁ (f pargs)) , λ{ (pargs , qargs) → proj₂ (f pargs) qargs }
 
 --------------------------------------------------------------------------------
 
@@ -87,10 +108,18 @@ _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
 (f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
 
+⟦⟧-×ₚ : ⟦ P ×ₚ Q ⟧ ≃ (λ X → ⟦ P ⟧ X × ⟦ Q ⟧ X)
+⟦⟧-×ₚ .to ((ptag , qtag) , f) = (ptag , λ pargs → f (inj₁ pargs)) , (qtag , λ qargs → f (inj₂ qargs))
+⟦⟧-×ₚ .from ((ptag , f) , (qtag , g)) = (ptag , qtag) , [ f , g ]
+
 -- | p ×ₚ q can be recovered as Product Bool (if _ then q else p)
 Product : (I : Set) → (I → Poly) → Poly
 (Product I f) .Tag = ∀ (i : I) → f i .Tag
 (Product I f) .Args tags = Σ[ i ∈ I ] (f i) .Args (tags i)
+
+⟦⟧-Product : {I : Set} {P : I → Poly} → ⟦ Product I P ⟧ ≃ (λ X → (i : I) → ⟦ P i ⟧ X)
+⟦⟧-Product .to (ptag , f) i = ptag i , λ pargs → f (i , pargs)
+⟦⟧-Product .from f = proj₁ ∘ f , λ (i , pargs) → proj₂ (f i) pargs
 
 --------------------------------------------------------------------------------
 
@@ -111,6 +140,12 @@ swap-⊗ .map-args tag (qargs , pargs) = pargs , qargs
 _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → P ⊗ Q ⇒ R ⊗ S
 (f *** g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
 (f *** g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
+
+-- | The parallel product doesn't have a general counterpart on Set endofunctors.
+--
+-- It is somewhat related to functor composition.
+⟦⟧-⊗-↝ : ⟦ P ⊗ Q ⟧ ↝ ⟦ P ⟧ ∘ ⟦ Q ⟧
+⟦⟧-⊗-↝ ((ptag , qtag) , f) = ptag , λ pargs → qtag , λ qargs → f (pargs , qargs)
 
 --------------------------------------------------------------------------------
 

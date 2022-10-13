@@ -6,10 +6,12 @@ module Poly where
 open import Data.Fin hiding (_+_)
 open import Data.Bool hiding (T; _∨_)
 open import Data.Sum
-open import Data.Unit using (⊤)
+open import Data.Unit using (⊤ ; tt)
 open import Data.Empty using (⊥)
 open import Function
 open import Data.Product 
+
+open import Poly.SetFunctor
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong)
@@ -51,7 +53,7 @@ private variable
 --------------------------------------------------------------------------------
 
 -- | Interpretation of a Poly as a functor @Set → Set@
-⟦_⟧ : Poly → (Set → Set)
+⟦_⟧ : ∀ {a b} → Poly → (Set a → Set b)
 ⟦ P ⟧ X = Σ[ tag ∈ P .Tag ] (P .Args tag → X)
 
 mapₚ : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
@@ -130,6 +132,10 @@ constant S = monomial S ⊥
 𝐗 : Poly
 𝐗 = monomial ⊤ ⊤
 
+-- | Power.
+𝐗^_ : Set → Poly
+𝐗^_ = monomial ⊤
+
 --------------------------------------------------------------------------------
 
 -- | A map between two Polynomials
@@ -145,7 +151,7 @@ open _⇒_ public
 
 -- | Transform a map between polynomials into a natural
 -- | transformation (a polymorphic function).
-_⟨$⟩_ : P ⇒ Q → ⟦ P ⟧ A → ⟦ Q ⟧ A
+_⟨$⟩_ : P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
 p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p⇒q tag qargs)
 
 idₚ : P ⇒ P
@@ -156,3 +162,24 @@ infixr 4 _⨟ₚ_
 _⨟ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ⨟ₚ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
 (p⇒q ⨟ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
+
+polymap : ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
+polymap f .map-tag ptag = proj₁ (f (ptag , id))
+polymap f .map-args ptag qargs = proj₂ (f (ptag , id)) qargs
+
+⟦⟧-monomial : ⟦ monomial S T ⟧ ≡ (λ A → S × (T → A))
+⟦⟧-monomial = refl
+
+open _≃_
+
+⟦⟧-𝐗 : ⟦ 𝐗 ⟧ ≃ id
+⟦⟧-𝐗 .to (_ , f) = f tt
+⟦⟧-𝐗 .from x = tt , λ _ → x
+
+⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ (λ X → T → X)
+⟦⟧-𝐗^ .to (_ , f) = f
+⟦⟧-𝐗^ .from = tt ,_
+
+⟦⟧-constant : ⟦ constant S ⟧ ≃ (λ _ → S)
+⟦⟧-constant .to (s , _) = s
+⟦⟧-constant .from = _, λ()

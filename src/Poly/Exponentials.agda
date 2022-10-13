@@ -1,12 +1,16 @@
 module Poly.Exponentials where
 
+open import Level
 open import Data.Empty using (⊥-elim)
 open import Data.Product
 open import Data.Sum
 open import Data.Unit using (tt)
 open import Function
 open import Poly
+open import Poly.SetFunctor
 open import Poly.Monoidal
+
+open _≃_
 
 private variable
   P Q R : Poly
@@ -19,6 +23,12 @@ P ~> Q = Product (P .Tag) λ ptag → Q ◁ (constant (P .Args ptag) + 𝐗)
 -- | Adjoint to the parallel product _⊗_.
 [_~>_] : Poly → Poly → Poly
 [ P ~> Q ] = Product (P .Tag) λ ptag → Q ◁ (constant (P .Args ptag) ×ₚ 𝐗)
+
+-- | Does the converse hold?
+⟦⟧-~> : ∀ {a b} → exp {a = a} {b = b} ⟦ P ⟧ ⟦ Q ⟧ ↝ ⟦ P ~> Q ⟧ 
+⟦⟧-~> f =
+  (λ ptag → proj₁ (f (λ x _ → x) (ptag , ?)) , λ qargs → inj₂ tt) ,
+  λ (ptag , qargs , tt) → proj₂ (f (λ x _ → x) (ptag , λ x → lift tt)) qargs
 
 -- | Adjunction _×ₚ Q ⊣ Q ~>_
 curry-×ₚ : P ×ₚ Q ⇒ R → P ⇒ (Q ~> R)
