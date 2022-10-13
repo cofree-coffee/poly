@@ -27,7 +27,7 @@ P ~> Q = Product (P .Tag) λ ptag → Q ◁ (constant (P .Args ptag) + 𝐗)
 -- | Does the converse hold?
 ⟦⟧-~> : ∀ {a b} → exp {a = a} {b = b} ⟦ P ⟧ ⟦ Q ⟧ ↝ ⟦ P ~> Q ⟧ 
 ⟦⟧-~> f =
-  (λ ptag → proj₁ (f (λ x _ → x) (ptag , ?)) , λ qargs → inj₂ tt) ,
+  (λ ptag → proj₁ (f (λ x _ → x) (ptag , λ _ → lift tt)) , λ qargs → inj₂ tt) ,
   λ (ptag , qargs , tt) → proj₂ (f (λ x _ → x) (ptag , λ x → lift tt)) qargs
 
 -- | Adjunction _×ₚ Q ⊣ Q ~>_
