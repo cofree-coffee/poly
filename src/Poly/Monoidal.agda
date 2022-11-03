@@ -48,6 +48,12 @@ eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
 eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
 eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
 
+mergeₚ : P + P ⇒ P
+mergeₚ .map-tag (inj₁ ptag) = ptag
+mergeₚ .map-tag (inj₂ ptag) = ptag
+mergeₚ .map-args (inj₁ ptag) pargs = pargs
+mergeₚ .map-args (inj₂ ptag) pargs = pargs
+
 Sum : (I : Set) → (I → Poly) → Poly
 Sum I P .Tag = ∃[ i ] P i .Tag
 Sum I P .Args (i , ptag) = P i .Args ptag
@@ -107,6 +113,11 @@ swap-×ₚ .map-tag (ptag , qtag) = qtag , ptag
 swap-×ₚ .map-args (ptag , qtag) (inj₁ qargs) = inj₂ qargs
 swap-×ₚ .map-args (ptag , qtag) (inj₂ pargs) = inj₁ pargs
 
+dupe-×ₚ : P ⇒ P ×ₚ P
+dupe-×ₚ .map-tag ptag =  ptag , ptag
+dupe-×ₚ .map-args ptag (inj₁ pargs) = pargs
+dupe-×ₚ .map-args ptag (inj₂ pargs) = pargs
+
 _&&&_ : R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 (f &&& g) .map-tag rtag =  map-tag f rtag , map-tag g rtag
 (f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
@@ -142,6 +153,10 @@ _⊗_ : Poly → Poly → Poly
 swap-⊗ : P ⊗ Q ⇒ Q ⊗ P
 swap-⊗ .map-tag (ptag , qtag) = qtag , ptag
 swap-⊗ .map-args tag (qargs , pargs) = pargs , qargs
+
+dupe-⊗ : P ⇒ P ⊗ P
+dupe-⊗ .map-tag ptag =  ptag , ptag
+dupe-⊗ .map-args ptag (f , g) = f
 
 -- | The Parallel Product of natural transformations between polynomials.
 _***_ : ∀ {P Q R S} → P ⇒ R → Q ⇒ S → P ⊗ Q ⇒ R ⊗ S
@@ -215,3 +230,38 @@ P ⊘ Q = P + (P ×ₚ Q) + Q
 infixr 4 _⊛_
 _⊛_ : Poly → Poly → Poly
 P ⊛ Q = P + (P Ⓥ Q) + Q
+
+--------------------------------------------------------------------------------
+
+_+⇒_ : P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
+(p⇒q +⇒ r⇒z) .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
+(p⇒q +⇒ r⇒z) .map-tag (inj₂ rtag) = inj₂ (map-tag r⇒z rtag)
+(p⇒q +⇒ r⇒z) .map-args (inj₁ ptag) = map-args p⇒q ptag
+(p⇒q +⇒ r⇒z) .map-args (inj₂ rtag) = map-args r⇒z rtag
+
+_◁⇒_ : P ⇒ Q → R ⇒ Z → P ◁ R ⇒ Q ◁ Z
+(p⇒q ◁⇒ r⇒z) .map-tag (ptag , parg→rtag) = (map-tag p⇒q ptag) , λ qargs → map-tag r⇒z (parg→rtag (map-args p⇒q ptag qargs))
+(p⇒q ◁⇒ r⇒z) .map-args (ptag , parg→rtag) (qargs , zargs) = map-args p⇒q ptag qargs , map-args r⇒z (parg→rtag (map-args p⇒q ptag qargs)) zargs
+
+_×ₚ⇒_ : P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×ₚ Z
+(p⇒q ×ₚ⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
+(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
+(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ zargs) = inj₂ (map-args r⇒z rtag zargs)
+
+_⊗⇒_ : P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
+(p⇒q ⊗⇒ r⇒z) .map-tag (ptag , rtag) =(map-tag p⇒q ptag) , (map-tag r⇒z rtag)
+(p⇒q ⊗⇒ r⇒z) .map-args (ptag , rtag) (qargs , zargs) = (map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)
+
+_Ⓥ⇒_ : P ⇒ Q → R ⇒ Z → P Ⓥ  R ⇒ Q Ⓥ Z
+(p⇒q Ⓥ⇒ r⇒z) .map-tag (ptag , rtag) = map-tag p⇒q ptag , map-tag r⇒z rtag
+(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
+(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ (inj₁ (qargs , zargs))) = inj₂ (inj₁ ((map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)))
+(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ (inj₂ zargs)) = inj₂ (inj₂ (map-args r⇒z rtag zargs))
+
+_∨⇒_ : P ⇒ Q → R ⇒ Z → P ∨ R ⇒ Q ∨ Z
+(p⇒q ∨⇒ r⇒z) .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
+(p⇒q ∨⇒ r⇒z) .map-tag (inj₂ (inj₁ (ptag , rtag))) = inj₂ (inj₁ ((map-tag p⇒q ptag) , (map-tag r⇒z rtag)))
+(p⇒q ∨⇒ r⇒z) .map-tag (inj₂ (inj₂ rtag)) = inj₂ (inj₂ (map-tag r⇒z rtag))
+(p⇒q ∨⇒ r⇒z) .map-args (inj₁ ptag) args = map-args p⇒q ptag args
+(p⇒q ∨⇒ r⇒z) .map-args (inj₂ (inj₁ (ptag , rtag))) (qargs , zargs) = (map-args p⇒q ptag qargs) , map-args r⇒z rtag zargs
+(p⇒q ∨⇒ r⇒z) .map-args (inj₂ (inj₂ rtag)) args = map-args r⇒z rtag args
