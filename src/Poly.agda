@@ -99,7 +99,7 @@ p : {X : Set} → Poly
 _ : ∀ {X : Set} → (⟦ p {X = X} ⟧ X) ≡ (Σ[ i ∈ Fin 4 ] (p .Args i → X))
 _ = refl
 
--- | Adding constants to a polynomial.
+-- | Adding coefficients to a polynomial.
 --
 -- data Q x = Foo x x x | Bar x x | Baz Bool x | Qux
 -- 
@@ -132,9 +132,26 @@ constant S = monomial S ⊥
 𝐗 : Poly
 𝐗 = monomial ⊤ ⊤
 
+open _≃_
+
+⟦⟧-𝐗 : ⟦ 𝐗 ⟧ ≃ id
+⟦⟧-𝐗 .to (_ , f) = f tt
+⟦⟧-𝐗 .from x = tt , λ _ → x
+
 -- | Power.
 𝐗^_ : Set → Poly
 𝐗^_ = monomial ⊤
+
+⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ Morphism T
+⟦⟧-𝐗^ .to (_ , f) = f
+⟦⟧-𝐗^ .from = tt ,_
+
+⟦⟧-constant : ⟦ constant S ⟧ ≃ const S
+⟦⟧-constant .to (s , _) = s
+⟦⟧-constant .from = _, λ()
+
+_$'_ : (A → B) → A → B
+f $' x = f x
 
 --------------------------------------------------------------------------------
 
@@ -170,16 +187,3 @@ polymap f .map-args ptag qargs = proj₂ (f (ptag , id)) qargs
 ⟦⟧-monomial : ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
 ⟦⟧-monomial = refl
 
-open _≃_
-
-⟦⟧-𝐗 : ⟦ 𝐗 ⟧ ≃ id
-⟦⟧-𝐗 .to (_ , f) = f tt
-⟦⟧-𝐗 .from x = tt , λ _ → x
-
-⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ Morphism T
-⟦⟧-𝐗^ .to (_ , f) = f
-⟦⟧-𝐗^ .from = tt ,_
-
-⟦⟧-constant : ⟦ constant S ⟧ ≃ const S
-⟦⟧-constant .to (s , _) = s
-⟦⟧-constant .from = _, λ()

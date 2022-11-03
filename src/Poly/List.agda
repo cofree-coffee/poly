@@ -8,6 +8,7 @@ open import Data.Nat
 open import Data.Product 
 open import Poly
 open import Poly.Maybe
+open import Poly.SetFunctor
 
 --------------------------------------------------------------------------------
 
@@ -32,10 +33,10 @@ cons a (tag , args) = (suc tag) , λ where
   zero → a
   (suc x) → args x
 
-maybe⇒Listₚ : maybeₚ ⇒ listₚ
-maybe⇒Listₚ .map-tag = toℕ
-maybe⇒Listₚ .map-args zero ()
-maybe⇒Listₚ .map-args (suc zero) x = x
+maybeₚ⇒listₚ : maybeₚ ⇒ listₚ
+maybeₚ⇒listₚ .map-tag = toℕ
+maybeₚ⇒listₚ .map-args zero ()
+maybeₚ⇒listₚ .map-args (suc zero) x = x
 
 maybe⇒List : Maybe A → List A
-maybe⇒List maybe = maybe⇒Listₚ ⟨$⟩ maybe
+maybe⇒List maybe = maybeₚ⇒listₚ ⟨$⟩ maybe
