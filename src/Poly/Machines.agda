@@ -147,3 +147,42 @@ example = true ∷ false ∷ true ∷ false ∷ false ∷ []
 
 exampleResult : List Bool
 exampleResult = false ∷ true ∷ true ∷ false ∷ false ∷ []
+
+--------------------------------------------------------------------------------
+-- Determinisitic Finite State Automata
+
+data Alphabet : Set where
+  a₀ : Alphabet
+  a₁ : Alphabet
+
+dfsa : monomial (Fin 3) (Fin 3) ⇒ monomial Bool Alphabet
+map-tag dfsa = λ where
+  zero → false
+  (suc zero) → true
+  (suc (suc zero)) → false
+map-args dfsa = λ where
+  zero a₀ → suc zero
+  zero a₁ → suc (suc zero)
+  (suc zero) a₀ → suc (suc zero)
+  (suc zero) a₁ → suc zero
+  (suc (suc zero)) a₀ → zero
+  (suc (suc zero)) a₁ → zero
+
+step-dfsa : Alphabet → Fin 3 → monomial (Fin 3) (Fin 3) ⇒ monomial Bool Alphabet → (Bool × Fin 3)
+step-dfsa a s bot = (bot .map-tag s) , (bot .map-args s a)
+
+run-dfsa = step-dfsa a₀ (suc zero) dfsa
+
+--------------------------------------------------------------------------------
+-- A "memoryless dynamical system"
+
+mds : (A → B) → monomial B B ⇒ monomial B A
+mds f .map-tag = id
+mds f .map-args = λ b a → f a
+
+-- | An MDS given a partial function.
+mds' : (A → B ⊎ Fin 1) → monomial (B ⊎ Fin 1) (B ⊎ Fin 1) ⇒ (monomial B A + monomial (Fin 1) (Fin 1))
+mds' f .map-tag = id
+mds' f .map-args (inj₁ b) a = f a
+mds' f .map-args (inj₂ zero) a = inj₂ zero
+
