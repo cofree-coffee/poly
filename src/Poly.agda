@@ -175,6 +175,10 @@ idₚ : P ⇒ P
 idₚ .map-tag tag = tag
 idₚ .map-args tag args = args
 
+-- | higher order identity
+inert : ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
+inert (tt , f) a = f tt a
+
 infixr 4 _⨟ₚ_
 _⨟ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ⨟ₚ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
