@@ -144,7 +144,7 @@ syntax Product I (λ i → P) = Πₚ[ i ∈ I ] P
 -- | P ⊗ Q
 -- Also called the Parallel Product of two Polynomials
 --
--- P ⊗ Q ≔ ∑[ i ∈ P .Tag Q .Tag ] y^(aᵢ × bⱼ)
+-- P ⊗ Q ≔ ∑[ i ∈ P .Tag × Q .Tag ] y^(aᵢ × bⱼ)
 infixr 7 _⊗_
 _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Tag  = Tag P × Tag Q
