@@ -80,8 +80,8 @@ Mealy : Set → Set → Set → Set
 Mealy S I O = monomial (S × I) S ⇒ monomial O ⊤
 
 mealy : (S × I → (S × O)) → Mealy S I O
-(mealy f) .map-tag  = proj₂ ∘ f
-(mealy f) .map-args tag = λ _ → (proj₁ ∘ f) tag
+mealy f .map-tag  = proj₂ ∘ f
+mealy f .map-args tag = λ _ → (proj₁ ∘ f) tag
 
 -- | Evaluate one step of a Mealy Machine with a given input @I@ and
 -- | state @S@.
@@ -120,19 +120,22 @@ mealy-× m n .map-tag ((s₁ , s₂) , i₁ , i₂) = (map-tag m (s₁ , i₁)) 
 mealy-× m n .map-args ((s₁ , s₂) , i₁ , i₂) tt = (map-args m (s₁ , i₁) tt) , (map-args n (s₂ , i₂) tt)
 
 --------------------------------------------------------------------------------
--- TODO: A Mealy Machine for converting binary numbers to their 2's complement.
 
-2s-complement : Mealy Bool Bool Bool
-2s-complement = mealy λ where
-  (false , false) → (false , false)
-  (false , true) → (true , true)
-  (true , input) → (true , not input)
+-- | A Mealy Machine for converting binary numbers to their 2's
+-- | complement.
+2s-complement : Mealy (Fin 2) Bool Bool
+2s-complement .map-tag (zero , i) = i
+2s-complement .map-tag (suc zero , false) = true
+2s-complement .map-tag (suc zero , true) = false
+2s-complement .map-args (zero , false) tt = zero
+2s-complement .map-args (zero , true) tt = suc zero
+2s-complement .map-args (suc zero , i) tt = suc zero
 
-example : List Bool
-example = true ∷ false ∷ true ∷ false ∷ false ∷ []
-
-exampleResult : List Bool
-exampleResult = false ∷ true ∷ true ∷ false ∷ false ∷ []
+-- | The 2s complement of 001 is 111.
+--
+-- Note we have to reverse our list because we should be running the
+-- algorithm from right to left.
+run-2s-complement = process-mealy zero (true ∷ false ∷ false ∷ []) 2s-complement
 
 --------------------------------------------------------------------------------
 
