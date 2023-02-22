@@ -80,7 +80,7 @@ m : {X : Set} → Poly
 --
 -- data P x = Foo x x x | Bar x x | Baz x | Qux
 -- 
--- P x ≡ x³ + x² + x + 0
+-- P x ≡ x³ + x² + x + 1
 -- 
 -- P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
 --   where

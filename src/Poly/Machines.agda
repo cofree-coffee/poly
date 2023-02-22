@@ -33,7 +33,7 @@ private variable
 -- S × I → S
 -- S → O
 --
--- S · xˢ → O · xᴵ
+-- Sxˢ → Oxᴵ
 Moore : Set → Set → Set → Set
 Moore S I O = monomial S S ⇒ monomial O I
 
