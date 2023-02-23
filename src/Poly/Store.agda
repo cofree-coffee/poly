@@ -3,9 +3,7 @@ module Poly.Store where
 
 --------------------------------------------------------------------------------
 
-open import Data.List
-open import Data.Nat hiding (_+_)
-open import Data.Product 
+open import Data.Product using (_,_)
 open import Poly
 
 --------------------------------------------------------------------------------

@@ -4,10 +4,9 @@ module Poly.Monoidal where
 
 --------------------------------------------------------------------------------
 
-open import Data.Product 
-open import Data.Sum
-open import Data.Unit.Base using (⊤; tt)
-open import Function
+open import Data.Product using (_×_; _,_; ∃-syntax; Σ-syntax; proj₁; proj₂)
+open import Data.Sum using (_⊎_; [_,_]; inj₁; inj₂)
+open import Function using (_∘_; id)
 open import Poly
 open import Poly.SetFunctor
 

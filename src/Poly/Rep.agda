@@ -4,15 +4,10 @@ module Poly.Rep where
 
 --------------------------------------------------------------------------------
 
+open import Data.Fin using (Fin; suc; zero)
+open import Data.Product using (Σ-syntax)
 open import Poly
-open import Data.Unit
-open import Data.Fin
-open import Data.Empty
-open import Data.Product
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; cong-app; sym)
-open import Data.Nat
-open Eq.≡-Reasoning
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 

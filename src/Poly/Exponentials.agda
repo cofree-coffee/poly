@@ -1,19 +1,25 @@
 module Poly.Exponentials where
 
-open import Level
+--------------------------------------------------------------------------------
+
 open import Data.Empty using (⊥-elim)
-open import Data.Product
-open import Data.Sum
+open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Sum using (inj₁; inj₂)
 open import Data.Unit using (tt)
-open import Function
+open import Function using (case_of_)
+open import Level using (lift)
 open import Poly
 open import Poly.SetFunctor
 open import Poly.Monoidal
 
 open _≃_
 
+--------------------------------------------------------------------------------
+
 private variable
   P Q R : Poly
+
+--------------------------------------------------------------------------------
 
 -- | Adjoint to the cartesian product _×ₚ_.
 -- Denoted q^p in the book.

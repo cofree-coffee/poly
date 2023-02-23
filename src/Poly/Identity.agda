@@ -3,10 +3,8 @@ module Poly.Identity where
 
 --------------------------------------------------------------------------------
 
-open import Data.Nat
-open import Data.Fin
-open import Data.Product 
-open import Data.Unit
+open import Data.Product using (_,_; proj₂)
+open import Data.Unit using (tt)
 open import Poly
 open import Poly.Monoidal
 

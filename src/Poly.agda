@@ -3,19 +3,15 @@ module Poly where
 
 --------------------------------------------------------------------------------
 
-open import Data.Fin hiding (_+_)
-open import Data.Bool hiding (T; _∨_)
-open import Data.Sum
-open import Data.Unit using (⊤ ; tt)
 open import Data.Empty using (⊥)
-open import Function
-open import Data.Product 
-
+open import Data.Fin hiding (_+_)
+open import Data.Product using (_×_; _,_; Σ-syntax; proj₁; proj₂)
+open import Data.Unit using (⊤ ; tt)
+open import Function using (_∘_; Morphism; const; id)
 open import Poly.SetFunctor
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong)
-open Eq.≡-Reasoning
+open Eq using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 

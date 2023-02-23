@@ -3,9 +3,9 @@ module Poly.List where
 
 --------------------------------------------------------------------------------
 
-open import Data.Fin
-open import Data.Nat 
-open import Data.Product 
+open import Data.Fin using (Fin; suc; zero; toℕ)
+open import Data.Nat using (ℕ; suc; zero)
+open import Data.Product using (_,_)
 open import Poly
 open import Poly.Maybe
 open import Poly.SetFunctor

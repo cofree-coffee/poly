@@ -3,9 +3,9 @@ module Poly.Vector where
 
 --------------------------------------------------------------------------------
 
-open import Data.Fin
-open import Data.Nat 
-open import Data.Product 
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Product using (_,_; Σ-syntax)
 open import Poly
 open import Poly.List
 

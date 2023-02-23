@@ -3,8 +3,8 @@ module Poly.Maybe where
 
 --------------------------------------------------------------------------------
 
-open import Data.Fin
-open import Data.Product 
+open import Data.Fin using (Fin; suc; zero)
+open import Data.Product using (_,_)
 open import Poly
 
 --------------------------------------------------------------------------------

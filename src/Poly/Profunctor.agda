@@ -3,8 +3,8 @@ module Poly.Profunctor where
 
 --------------------------------------------------------------------------------
 
-open import Data.Product 
-open import Data.Sum
+open import Data.Product using (_,_)
+open import Data.Sum using (inj₁; inj₂)
 open import Poly
 open import Poly.Monoidal
 

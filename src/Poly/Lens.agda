@@ -3,16 +3,8 @@ module Poly.Lens where
 
 --------------------------------------------------------------------------------
 
-open import Data.Bool hiding (T)
-open import Function
-open import Data.Fin
-open import Data.List
-open import Data.Nat 
+open import Data.Bool using (Bool; true; false)
 open import Data.Product 
-open import Data.String hiding (_++_)
-import Data.String as String
-open import Data.Unit
-open import Data.Vec hiding (_++_)
 open import Poly
 
 --------------------------------------------------------------------------------

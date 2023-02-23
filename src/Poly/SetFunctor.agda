@@ -1,11 +1,15 @@
 module Poly.SetFunctor where
 
-open import Level using (Level; suc; _⊔_)
+--------------------------------------------------------------------------------
+
 open import Data.Product using (_×_; ∃-syntax)
 open import Data.Sum.Base using (_⊎_)
+open import Effect.Functor using (RawFunctor)
 open import Function.Base using (id ; _∘_)
-open import Effect.Functor
-open import Relation.Binary
+open import Level using (Level; suc; _⊔_)
+open import Relation.Binary using (_Preserves_⟶_; Reflexive; Symmetric; Transitive)
+
+--------------------------------------------------------------------------------
 
 -- * Natural transformations and isomorphisms
 

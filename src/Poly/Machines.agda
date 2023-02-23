@@ -3,25 +3,19 @@ module Poly.Machines where
 
 --------------------------------------------------------------------------------
 
-open import Agda.Builtin.Equality
-open import Relation.Nullary
-open import Data.Integer hiding (suc; _⊔_)
+open import Data.Bool using (Bool; true; false)
+open import Function using (_∘_; id)
+open import Data.Fin using (Fin; suc; zero)
+open import Data.Integer using (ℤ)
 import Data.Integer as ℤ
-open import Data.Bool hiding (T)
-open import Data.Maybe
-open import Function
-open import Data.Fin hiding (_+_)
 open import Data.List
-open import Data.Nat hiding (_+_)
-open import Data.Product 
-open import Data.String hiding (_++_)
-open import Data.Sum
-import Data.String as String
-open import Data.Unit
-open import Data.Vec hiding (_++_)
+open import Data.Nat using (_⊔_; ℕ; zero)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Unit using (⊤; tt)
 open import Poly
 open import Poly.Monoidal
-open import Poly.Profunctor
+open import Relation.Nullary
 
 --------------------------------------------------------------------------------
 
