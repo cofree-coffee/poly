@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Poly.List where
+module Poly.Types.List where
 
 --------------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@ open import Data.Fin using (Fin; suc; zero; toℕ)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_,_)
 open import Poly
-open import Poly.Maybe
+open import Poly.Types.Maybe
 open import Poly.SetFunctor
 
 --------------------------------------------------------------------------------

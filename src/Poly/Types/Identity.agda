@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Poly.Identity where
+module Poly.Types.Identity where
 
 --------------------------------------------------------------------------------
 

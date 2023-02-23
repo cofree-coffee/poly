@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --allow-unsolved-metas #-}
-module Poly.Map where
+module Poly.Types.Map where
 
 --------------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Poly.Maybe where
+module Poly.Types.Maybe where
 
 --------------------------------------------------------------------------------
 

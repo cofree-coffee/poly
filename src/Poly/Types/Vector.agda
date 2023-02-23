@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Poly.Vector where
+module Poly.Types.Vector where
 
 --------------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (_,_; Σ-syntax)
 open import Poly
-open import Poly.List
+open import Poly.Types.List
 
 --------------------------------------------------------------------------------
 
