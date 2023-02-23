@@ -16,7 +16,9 @@ open import Data.Unit using (⊤; tt)
 open import Poly
 open import Poly.Lens
 open import Poly.Monoidal
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq.≡-Reasoning
 open import Relation.Nullary
 
 --------------------------------------------------------------------------------
@@ -96,20 +98,8 @@ process-mealy s (i ∷ is) bot =
 --------------------------------------------------------------------------------
 -- Machine Composition
 
-moore-+ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
-moore-+ m n .map-tag (s₁ , s₂) = inj₁ (map-tag m s₁) -- We must pick to project left or right arbitrarily
-moore-+ m n .map-args (s₁ , s₂) (inj₁ i₁) = (map-args m s₁ i₁) , s₂
-moore-+ m n .map-args (s₁ , s₂) (inj₂ i₂) = s₁ , map-args n s₂ i₂
-
-moore-×₁ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → monomial S₁ S₁ ⇒ monomial O₁ I₁ → monomial S₂ S₂ ⇒ monomial O₂ I₂ → monomial S₁ S₁ ⊗ monomial S₂ S₂ ⇒ monomial O₁ I₁ ⊗ monomial O₂ I₂
-moore-×₁ m n .map-tag (s₁ , s₂) = (m .map-tag s₁) , n .map-tag s₂
-moore-×₁ m n .map-args (s₁ , s₂) (i₁ , i₂) = (m .map-args s₁ i₁) , n .map-args s₂ i₂
-
-moore-×₀ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → monomial S₁ S₁ ⇒ monomial O₁ I₁ → monomial S₂ S₂ ⇒ monomial O₂ I₂ → monomial S₁ S₁ ⊗ monomial S₂ S₂ ⇒ monomial O₁ I₁ ⊗ monomial O₂ I₂
-moore-×₀ m n = m ⊗⇒ n
-
 moore-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
-moore-× m n = m ⊗⇒ n
+moore-×  m n = m ⊗⇒ n
 
 mealy-+ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
 mealy-+ m n .map-tag ((s₁ , s₂) , inj₁ i₁) = inj₁ (map-tag m (s₁ , i₁))

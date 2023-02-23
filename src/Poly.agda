@@ -32,7 +32,6 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 --
 -- I is thus @P .Tag@ and @aᵢ@ is @P .Args i@.
 record Poly : Set where
-  no-eta-equality
   constructor poly
   field
     Tag : Set
@@ -148,7 +147,6 @@ f $' x = f x
 -- | A map between two Polynomials
 infixr 0 _⇒_
 record _⇒_ (P Q : Poly) : Set where
-  no-eta-equality
   constructor poly-map
   field
     map-tag : P .Tag → Q .Tag 
