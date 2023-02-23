@@ -265,6 +265,8 @@ run-latch = process-moore 0 (1 ∷ 2 ∷ 2 ∷ 4 ∷ 3 ∷ 1 ∷ []) latch
 -- | A Moore machine that receives a constant input and outputs its
 -- state.
 --
+-- >--1--[ ]--ℕ-->
+
 -- ℕy^ℕ ⇒ ℕy
 --
 -- monomial ℕ ℕ ⇒ monomial ℕ (Fin 1)
@@ -272,9 +274,11 @@ repeater : Moore ℕ (Fin 1) ℕ
 repeater .map-tag n = n
 repeater .map-args n zero = n
 
-run-repeater = process-moore 7 (zero ∷ zero ∷ zero ∷ []) repeater
+run-repeater = process-moore' 7 (zero ∷ zero ∷ zero ∷ []) repeater
 
 -- | A Moore machine that receives a natural and outputs Fin 1.
+--
+-- >--ℕ--[ ]--1-->
 --
 -- ℕy^ℕ ⇒ y^ℕ
 --
@@ -283,9 +287,13 @@ const-1 : Moore ℕ ℕ (Fin 1)
 const-1 .map-tag n = zero
 const-1 .map-args n = id
 
-run-const-one = process-moore zero (1 ∷ 2 ∷ 3 ∷ []) const-1
+run-const-one = process-moore' 1 (1 ∷ 2 ∷ 3 ∷ []) const-1
 
--- | ℕy^ℕ ⇒ ℕy^(ℕ + 1)
+-- | The binary categorical product of 'const-1' and 'repeater'.
+--
+-- >--ℕ+1--[ ]--ℕ-->
+--
+-- ℕy^ℕ ⇒ ℕy^(ℕ + 1)
 --
 -- monomial ℕ ℕ ⇒ monomial ℕ (ℕ ⊎ Fin 1)
 const-1+repeater' : Moore ℕ (ℕ ⊎ Fin 1) ℕ 
@@ -293,9 +301,16 @@ const-1+repeater' .map-tag = id
 const-1+repeater' .map-args n (inj₁ n') = n'
 const-1+repeater' .map-args n (inj₂ zero) = n
 
--- | ℕy^ℕ ⇒ y^ℕ × ℕy 
+-- | The binary categorical product implemented using more general
+-- Poly combinators.
+--
+-- >--ℕ+1--[ ]--1×ℕ-->
+--
+-- ℕy^ℕ ⇒ y^ℕ × ℕy 
 const-1+repeater : monomial ℕ ℕ ⇒ monomial (Fin 1) ℕ ×ₚ monomial ℕ (Fin 1) 
 const-1+repeater = const-1 &&& repeater
 -- const-1+repeater .map-tag n = zero , n
 -- const-1+repeater .map-args n (inj₁ n') = n'
 -- const-1+repeater .map-args n (inj₂ zero) = n
+
+run-const-1+repeater = process-moore' 0 (inj₁ 1 ∷ inj₂ zero ∷ inj₂ zero ∷ inj₁ 3 ∷ inj₂ zero ∷ []) const-1+repeater'

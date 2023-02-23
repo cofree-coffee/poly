@@ -241,6 +241,14 @@ _×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×�
 (p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
 (p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ zargs) = inj₂ (map-args r⇒z rtag zargs)
 
+-- | Parallel composition of systems.
+--
+--      -------
+-- >--A-|-[ ]-|-B-->
+-- >--C-|-[ ]-|-D--> 
+--      -------
+--
+-- (Syˢ ⇒ Byᴬ) ⊗⇒ (Tyᵗ ⇒ Dyᶜ) ≡ STyˢᵗ ⇒ BDyᵃᶜ
 _⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
 (p⇒q ⊗⇒ r⇒z) .map-tag (ptag , rtag) =(map-tag p⇒q ptag) , (map-tag r⇒z rtag)
 (p⇒q ⊗⇒ r⇒z) .map-args (ptag , rtag) (qargs , zargs) = (map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)
