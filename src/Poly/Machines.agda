@@ -14,7 +14,9 @@ open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Unit using (⊤; tt)
 open import Poly
+open import Poly.Lens
 open import Poly.Monoidal
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary
 
 --------------------------------------------------------------------------------
@@ -33,6 +35,9 @@ Moore S I O = monomial S S ⇒ monomial O I
 moore : ∀{S I O : Set} → (S → O) → (S → I → S) → Moore S I O
 moore output transition .map-tag = output
 moore output transition .map-args s = transition s
+
+Moore≡Lens : ∀{S I O : Set} → Moore S I O ≡ Lens S S O I
+Moore≡Lens = refl
 
 -- | We can then recover the output and transition functions by
 -- | eta-expanding around '.map-tag' and '.map-args'.
@@ -228,14 +233,14 @@ data State : Set where
   c : State
   halt : State
 
-nextCommand : State → V ⊎ M
-nextCommand a = {!!}
-nextCommand b = {!!}
-nextCommand c = {!!}
-nextCommand halt = {!!}
-
-process : monomial State State ⇒ monomial (V ⊎ M) V
-process = processor nextCommand {!!}
+-- nextCommand : State → V ⊎ M
+-- nextCommand a = {!!}
+-- nextCommand b = {!!}
+-- nextCommand c = {!!}
+-- nextCommand halt = {!!}
+-- 
+-- process : monomial State State ⇒ monomial (V ⊎ M) V
+-- process = processor nextCommand {!!}
 
 --------------------------------------------------------------------------------
 
