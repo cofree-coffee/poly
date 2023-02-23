@@ -3,7 +3,10 @@ module Poly.Machines where
 
 --------------------------------------------------------------------------------
 
-open import Agda.Builtin.Int
+open import Agda.Builtin.Equality
+open import Relation.Nullary
+open import Data.Integer hiding (suc; _⊔_)
+import Data.Integer as ℤ
 open import Data.Bool hiding (T)
 open import Data.Maybe
 open import Function
@@ -209,47 +212,25 @@ Tape S = monomial S S ⇒ monomial V (V × M)
 Processor : Set → Set
 Processor S = monomial S S ⇒ monomial (V ⊎ M) V 
 
-inc : Int → Int
-inc (pos n) = pos (suc n)
-inc (negsuc zero) = pos (suc zero)
-inc (negsuc (suc n)) = negsuc n
-
-dec : Int → Int
-dec (pos zero) = negsuc (suc zero)
-dec (pos (suc n)) = pos n
-dec (negsuc zero) = negsuc (suc zero)
-dec (negsuc n) = negsuc (suc n)
-
-bool : A → A → Bool → A
-bool fls tru false = fls
-bool fls tru true = tru
-
-int-eq : Int → Int → Bool
-int-eq (pos zero) (pos zero) = true
-int-eq (pos zero) (pos (suc m)) = false
-int-eq (pos (suc n)) (pos zero) = false
-int-eq (pos (suc n)) (pos (suc m)) = int-eq (pos n) (pos m)
-int-eq (pos n) (negsuc m) = false
-int-eq (negsuc n) (pos m) = false
-int-eq (negsuc zero) (negsuc zero) = true
-int-eq (negsuc zero) (negsuc (suc m)) = false
-int-eq (negsuc (suc n)) (negsuc zero) = false
-int-eq (negsuc (suc n)) (negsuc (suc m)) = int-eq (negsuc n) (negsuc m)
+decide : ℤ → ℤ → (ℤ → V) → V → V
+decide n c f v with n ℤ.≟ c
+... | .true because ofʸ p = v
+... | .false because ofⁿ ¬p = f n
 
 -- | The Tape of a Turing machine has states (V^ℤ × ℤ), outputs V, and
 -- inputs V x {L,R}, so as a Moore machine it is a lens:
 -- 
 --   (V^ℤ × ℤ)y^(V^ℤ × ℤ) ⇒ Vy^(V × {L,R})
-tape : monomial ((Int → V) × Int) ((Int → V) × Int) ⇒ monomial V (V × M)
+tape : monomial ((ℤ → V) × ℤ) ((ℤ → V) × ℤ) ⇒ monomial V (V × M)
 tape .map-tag (f , c) = f c
-tape .map-args (f , c) (v , Left) =  (λ n → bool (f n) v (int-eq n c)) , dec c
-tape .map-args (f , c) (v , Right) =  (λ n → bool (f n) v (int-eq n c)) , inc c
+tape .map-args (f , c) (v , Left) =  (λ n → decide n c f v) , ℤ.suc c
+tape .map-args (f , c) (v , Right) =  (λ n → decide n c f v) , ℤ.pred c
 
 processor : (S → V ⊎ M) → (S → V → S) → monomial S S ⇒ monomial (V ⊎ M) V 
 processor nextCommand updateState .map-tag = nextCommand
 processor nextCommand updateState .map-args = updateState
 
-step-tape : V × M → ((Int → V) × Int) → monomial ((Int → V) × Int) ((Int → V) × Int) ⇒ monomial V (V × M) → V × ((Int → V) × Int)
+step-tape : V × M → ((ℤ → V) × ℤ) → monomial ((ℤ → V) × ℤ) ((ℤ → V) × ℤ) ⇒ monomial V (V × M) → V × ((ℤ → V) × ℤ)
 step-tape v×m s tape =  tape .map-tag s , tape .map-args s v×m
 
 -- The 3-state busy beaver
