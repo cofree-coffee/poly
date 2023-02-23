@@ -314,3 +314,32 @@ const-1+repeater = const-1 &&& repeater
 -- const-1+repeater .map-args n (inj₂ zero) = n
 
 run-const-1+repeater = process-moore' 0 (inj₁ 1 ∷ inj₂ zero ∷ inj₂ zero ∷ inj₁ 3 ∷ inj₂ zero ∷ []) const-1+repeater'
+
+--------------------------------------------------------------------------------
+
+-- | Wiring Diagram Example
+--
+-- Illustration available here:
+-- https://www.youtube.com/live/kPfyHwibgzs?feature=share&t=1213
+--
+-- ACyᴬᴮ ⊗ Byᴬ ⇒ By¹
+
+ACyᴬᴮ : ∀{A B C : Set} → Poly 
+ACyᴬᴮ {A} {B} {C} = monomial (A × C) (A × B)
+
+Byᴬ : ∀{A B : Set} → Poly
+Byᴬ {A} {B} = monomial B A
+
+By¹ : ∀{B : Set} → Poly
+By¹ {B} = monomial B (Fin 1)
+
+diagram : ∀{A B C : Set} → monomial (A × C) (A × B) ⊗ monomial B A ⇒ monomial B (Fin 1)
+diagram .map-tag ((A , C) , B) = B
+diagram .map-args ((A , C) , B) zero = (A , B) , A
+
+
+-- ACyᴬᴮ ⊗ Byᴬ ⇒ By¹ ≡ ACByᴬᴮᴬ ⇒ By¹
+
+diagram' : ∀{A B C : Set} → monomial (A × C × B) (A × B × A) ⇒ monomial B (Fin 1)
+diagram' .map-tag (A , C , B) = B
+diagram' .map-args (A , C , B) zero = A , (B , A)
