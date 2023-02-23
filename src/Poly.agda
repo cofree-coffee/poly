@@ -9,9 +9,7 @@ open import Data.Product using (_×_; _,_; Σ-syntax; proj₁; proj₂)
 open import Data.Unit using (⊤ ; tt)
 open import Function using (_∘_; Morphism; const; id)
 open import Poly.SetFunctor
-
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 
@@ -42,17 +40,13 @@ record Poly : Set where
 
 open Poly public
 
-private variable
-  A B C D S T I O : Set
-  P Q R Z : Poly
-
 --------------------------------------------------------------------------------
 
 -- | Interpretation of a Poly as a functor @Set → Set@
 ⟦_⟧ : ∀ {a b} → Poly → (Set a → Set b)
 ⟦ P ⟧ X = Σ[ tag ∈ P .Tag ] (P .Args tag → X)
 
-mapₚ : (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
+mapₚ : ∀{P : Poly} → ∀{A B : Set} → (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
 mapₚ f (tag , args) = tag , λ x → f (args x)
 
 --------------------------------------------------------------------------------
@@ -138,15 +132,15 @@ open _≃_
 𝐗^_ : Set → Poly
 𝐗^_ = monomial ⊤
 
-⟦⟧-𝐗^ : ⟦ 𝐗^ T ⟧ ≃ Morphism T
+⟦⟧-𝐗^ : ∀{ T : Set} → ⟦ 𝐗^ T ⟧ ≃ Morphism T
 ⟦⟧-𝐗^ .to (_ , f) = f
 ⟦⟧-𝐗^ .from = tt ,_
 
-⟦⟧-constant : ⟦ constant S ⟧ ≃ const S
+⟦⟧-constant : ∀{S : Set} → ⟦ constant S ⟧ ≃ const S
 ⟦⟧-constant .to (s , _) = s
 ⟦⟧-constant .from = _, λ()
 
-_$'_ : (A → B) → A → B
+_$'_ : ∀{A B : Set} → (A → B) → A → B
 f $' x = f x
 
 --------------------------------------------------------------------------------
@@ -164,26 +158,26 @@ open _⇒_ public
 
 -- | Transform a map between polynomials into a natural
 -- | transformation (a polymorphic function).
-_⟨$⟩_ : P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
+_⟨$⟩_ : ∀{P Q : Poly} → P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
 p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p⇒q tag qargs)
 
-idₚ : P ⇒ P
+idₚ : ∀{P : Poly} → P ⇒ P
 idₚ .map-tag tag = tag
 idₚ .map-args tag args = args
 
 -- | higher order identity
-inert : ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
+inert : ∀{A B : Set} → ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
 inert (tt , f) a = f tt a
 
 infixr 4 _⨟ₚ_
-_⨟ₚ_ : P ⇒ Q → Q ⇒ R → P ⇒ R
+_⨟ₚ_ : ∀{P Q R : Poly} → P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ⨟ₚ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
 (p⇒q ⨟ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
 
-polymap : ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
+polymap : ∀{P Q : Poly} → ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
 polymap f .map-tag ptag = proj₁ (f (ptag , id))
 polymap f .map-args ptag qargs = proj₂ (f (ptag , id)) qargs
 
-⟦⟧-monomial : ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
+⟦⟧-monomial : ∀{S T : Set} → ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
 ⟦⟧-monomial = refl
 

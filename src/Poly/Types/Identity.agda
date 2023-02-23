@@ -10,23 +10,17 @@ open import Poly.Monoidal
 
 --------------------------------------------------------------------------------
 
-private variable
-  A B C D S T I O : Set
-  P Q R : Poly
-
---------------------------------------------------------------------------------
-
-identity : ⟦ 𝐗 ⟧ A → A 
+identity : ∀{A : Set} → ⟦ 𝐗 ⟧ A → A 
 identity (tt , f) = f tt
 
 Identity : Set → Set
 Identity = ⟦ 𝐗 ⟧
 
-runIdentity : Identity A → A
+runIdentity : ∀{A : Set} → Identity A → A
 runIdentity (tt , args) = args tt
 
-id' : Identity A → Identity A
+id' : ∀{A : Set} → Identity A → Identity A
 id' id = idₚ {P = 𝐗} ⟨$⟩ id
 
-id : A → A
+id : ∀{A : Set} → A → A
 id x = proj₂ (id' (tt , λ _ → x)) tt

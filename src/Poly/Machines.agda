@@ -19,12 +19,6 @@ open import Relation.Nullary
 
 --------------------------------------------------------------------------------
 
-private variable
-  A B C D S T I J O S₁ I₁ J₁ O₁ S₂ I₂ J₂ O₂ : Set
-  P Q R : Poly
-
---------------------------------------------------------------------------------
-
 -- | Moore Machine:
 --
 -- S × I → S
@@ -36,22 +30,22 @@ Moore S I O = monomial S S ⇒ monomial O I
 
 -- | We can build a 'Moore' from an output function and a transition
 -- | function.
-moore : (S → O) → (S → I → S) → Moore S I O
+moore : ∀{S I O : Set} → (S → O) → (S → I → S) → Moore S I O
 moore output transition .map-tag = output
 moore output transition .map-args s = transition s
 
 -- | We can then recover the output and transition functions by
 -- | eta-expanding around '.map-tag' and '.map-args'.
-disassemble-moore : Moore S I O → (S → O) × (S → I → S)
+disassemble-moore : ∀{S I O : Set} → Moore S I O → (S → O) × (S → I → S)
 disassemble-moore m = (λ s → m .map-tag s) , λ s i → m .map-args s i 
 
 -- | Evaluate one step of a moore machine with a given input @i@ and
 -- | state @s@.
-step-moore : I → S → Moore S I O → (O × S)
+step-moore : ∀{S I O : Set} → I → S → Moore S I O → (O × S)
 step-moore i s bot = bot .map-tag s , bot .map-args s i
 
 -- | Turn the crank on a Moore Machine with a list of inputs @I@.
-process-moore' : S → List I → Moore S I O → List O × S
+process-moore' : ∀{S I O : Set} →  S → List I → Moore S I O → List O × S
 process-moore' s [] bot = [] , s
 process-moore' s (i ∷ is) bot =
   let (o , s') = step-moore i s bot 
@@ -60,7 +54,7 @@ process-moore' s (i ∷ is) bot =
 
 -- | Turn the crank on a Moore machine then emit the final state and
 -- | the output associated with it.
-process-moore : S → List I → Moore S I O → O × S
+process-moore : ∀{S I O : Set} →  S → List I → Moore S I O → O × S
 process-moore s i bot =
   let (_ , s') = process-moore' s i bot
   in (bot .map-tag s') , s'
@@ -76,17 +70,17 @@ process-moore s i bot =
 Mealy : Set → Set → Set → Set
 Mealy S I O = monomial (S × I) S ⇒ monomial O ⊤
 
-mealy : (S × I → (S × O)) → Mealy S I O
+mealy : ∀{S I O : Set} →  (S × I → (S × O)) → Mealy S I O
 mealy f .map-tag  = proj₂ ∘ f
 mealy f .map-args tag = λ _ → (proj₁ ∘ f) tag
 
 -- | Evaluate one step of a Mealy Machine with a given input @I@ and
 -- | state @S@.
-step-mealy : I → S → Mealy S I O → (O × S)
+step-mealy : ∀{S I O : Set} →  I → S → Mealy S I O → (O × S)
 step-mealy i s bot = bot .map-tag ( s , i) , bot .map-args (s , i) tt
 
 -- | Turn the crank on a Mealy Machine with a list of inputs @I@.
-process-mealy : S → List I → Mealy S I O → List O × S
+process-mealy : ∀{S I O : Set} →  S → List I → Mealy S I O → List O × S
 process-mealy s [] bot = [] , s 
 process-mealy s (i ∷ is) bot =
   let
@@ -97,22 +91,22 @@ process-mealy s (i ∷ is) bot =
 --------------------------------------------------------------------------------
 -- Machine Composition
 
-moore-+ : Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
+moore-+ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
 moore-+ m n .map-tag (s₁ , s₂) = inj₁ (map-tag m s₁) -- We must pick to project left or right arbitrarily
 moore-+ m n .map-args (s₁ , s₂) (inj₁ i₁) = (map-args m s₁ i₁) , s₂
 moore-+ m n .map-args (s₁ , s₂) (inj₂ i₂) = s₁ , map-args n s₂ i₂
 
-moore-× : Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
+moore-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
 moore-× m n .map-tag (s₁ , s₂) =  m .map-tag s₁ , n .map-tag s₂
 moore-× m n .map-args (s₁ , s₂) (i₁ , i₂) = (m .map-args s₁ i₁) , n .map-args s₂ i₂
 
-mealy-+ : Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
+mealy-+ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
 mealy-+ m n .map-tag ((s₁ , s₂) , inj₁ i₁) = inj₁ (map-tag m (s₁ , i₁))
 mealy-+ m n .map-tag ((s₁ , s₂) , inj₂ i₂) = inj₂ (map-tag n (s₂ , i₂))
 mealy-+ m n .map-args ((s₁ , s₂) , inj₁ i₁) tt = (map-args m (s₁ , i₁) tt) , s₂ 
 mealy-+ m n .map-args ((s₁ , s₂) , inj₂ i₂) tt = s₁ , (map-args n (s₂ , i₂) tt)
 
-mealy-× : Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
+mealy-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
 mealy-× m n .map-tag ((s₁ , s₂) , i₁ , i₂) = (map-tag m (s₁ , i₁)) , (map-tag n (s₂ , i₂))
 mealy-× m n .map-args ((s₁ , s₂) , i₁ , i₂) tt = (map-args m (s₁ , i₁) tt) , (map-args n (s₂ , i₂) tt)
 
@@ -176,14 +170,14 @@ run-3-state-dfsa = process-moore zero (a₀ ∷ a₁ ∷ a₀ ∷ a₁ ∷ a₀ 
 -- Byᴬ ⇒ Byᴬ
 --
 -- monomial B B ⇒ monomial B A
-mds : (A → B) → Moore B A B
+mds : ∀{A B : Set} → (A → B) → Moore B A B
 mds f .map-tag = id
 mds f .map-args = λ _ a → f a
 
 -- | An MDS given a partial function.
 --
 -- monomial (B ⊎ Fin 1) (B ⊎ Fin 1) ⇒ (monomial B A + monomial (Fin 1) (Fin 1))
-mds-partial : (A → B ⊎ Fin 1) → Moore (B ⊎ Fin 1) A (B ⊎ Fin 1)
+mds-partial : ∀{A B : Set} → (A → B ⊎ Fin 1) → Moore (B ⊎ Fin 1) A (B ⊎ Fin 1)
 mds-partial f .map-tag = id
 mds-partial f .map-args (inj₁ b) a = f a
 mds-partial f .map-args (inj₂ zero) a = inj₂ zero
@@ -220,7 +214,7 @@ tape .map-tag (f , c) = f c
 tape .map-args (f , c) (v , Left) =  (λ n → decide n c f v) , ℤ.suc c
 tape .map-args (f , c) (v , Right) =  (λ n → decide n c f v) , ℤ.pred c
 
-processor : (S → V ⊎ M) → (S → V → S) → monomial S S ⇒ monomial (V ⊎ M) V 
+processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial S S ⇒ monomial (V ⊎ M) V 
 processor nextCommand updateState .map-tag = nextCommand
 processor nextCommand updateState .map-args = updateState
 
