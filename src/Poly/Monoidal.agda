@@ -36,10 +36,10 @@ rightₚ .map-args tag = id
 
 -- | Co-Product eliminator
 eitherₚ : ∀{P Q R : Poly} → P ⇒ R → Q ⇒ R → (P + Q) ⇒ R
-eitherₚ f g .map-tag (inj₁ ptag) = f .map-tag ptag
-eitherₚ f g .map-tag (inj₂ qtag) = g .map-tag qtag
-eitherₚ f g .map-args (inj₁ tag) rargs = f .map-args tag rargs
-eitherₚ f g .map-args (inj₂ tag) rargs = g .map-args tag rargs
+eitherₚ p⇒r q⇒r .map-tag (inj₁ ptag) = p⇒r .map-tag ptag
+eitherₚ p⇒r q⇒r .map-tag (inj₂ qtag) = q⇒r .map-tag qtag
+eitherₚ p⇒r q⇒r .map-args (inj₁ tag) = p⇒r .map-args tag
+eitherₚ p⇒r q⇒r .map-args (inj₂ tag) = q⇒r .map-args tag
 
 mergeₚ : ∀{P : Poly} → P + P ⇒ P
 mergeₚ .map-tag (inj₁ ptag) = ptag
@@ -151,11 +151,6 @@ dupe-⊗ : ∀{P : Poly} → P ⇒ P ⊗ P
 dupe-⊗ .map-tag ptag =  ptag , ptag
 dupe-⊗ .map-args ptag (f , g) = f
 
--- | The Parallel Product of natural transformations between polynomials.
-_***_ : ∀ {P Q R S : Poly} → P ⇒ R → Q ⇒ S → P ⊗ Q ⇒ R ⊗ S
-(f *** g) .map-tag  (pt , qt) = map-tag f pt , map-tag g qt
-(f *** g) .map-args (pt , qt) (rargs , sargs) = map-args f pt rargs , map-args g qt sargs
-
 -- | The parallel product represents day convolution.
 ⟦⟧-⊗ : ∀{P Q : Poly} → ⟦ P ⊗ Q ⟧ ≃ day ⟦ P ⟧ ⟦ Q ⟧
 ⟦⟧-⊗ {P = P} {Q = Q} .to ((ptag , qtag) , f) = P .Args ptag , Q .Args qtag , (λ pargs qargs → f (pargs , qargs)) , (ptag , id) , (qtag , id)
@@ -226,6 +221,24 @@ P ⊛ Q = P + (P Ⓥ Q) + Q
 
 --------------------------------------------------------------------------------
 
+_×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×ₚ Z
+(p⇒q ×ₚ⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
+(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
+(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ zargs) = inj₂ (map-args r⇒z rtag zargs)
+
+-- | Parallel composition of systems, eg. the Parallel Product of
+-- natural transformations between polynomials.
+--
+--      -------
+-- >--A-|-[ ]-|-B-->
+-- >--C-|-[ ]-|-D--> 
+--      -------
+--
+-- (Syˢ ⇒ Byᴬ) ⊗⇒ (Tyᵗ ⇒ Dyᶜ) ≡ STyˢᵗ ⇒ BDyᵃᶜ
+_⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
+(p⇒q ⊗⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
+(p⇒q ⊗⇒ r⇒z) .map-args (ptag , rtag) (qargs , zargs) = (map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)
+
 _+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
 (p⇒q +⇒ r⇒z) .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
 (p⇒q +⇒ r⇒z) .map-tag (inj₂ rtag) = inj₂ (map-tag r⇒z rtag)
@@ -235,23 +248,6 @@ _+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
 _◁⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ◁ R ⇒ Q ◁ Z
 (p⇒q ◁⇒ r⇒z) .map-tag (ptag , parg→rtag) = (map-tag p⇒q ptag) , λ qargs → map-tag r⇒z (parg→rtag (map-args p⇒q ptag qargs))
 (p⇒q ◁⇒ r⇒z) .map-args (ptag , parg→rtag) (qargs , zargs) = map-args p⇒q ptag qargs , map-args r⇒z (parg→rtag (map-args p⇒q ptag qargs)) zargs
-
-_×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×ₚ Z
-(p⇒q ×ₚ⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
-(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
-(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ zargs) = inj₂ (map-args r⇒z rtag zargs)
-
--- | Parallel composition of systems.
---
---      -------
--- >--A-|-[ ]-|-B-->
--- >--C-|-[ ]-|-D--> 
---      -------
---
--- (Syˢ ⇒ Byᴬ) ⊗⇒ (Tyᵗ ⇒ Dyᶜ) ≡ STyˢᵗ ⇒ BDyᵃᶜ
-_⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
-(p⇒q ⊗⇒ r⇒z) .map-tag (ptag , rtag) =(map-tag p⇒q ptag) , (map-tag r⇒z rtag)
-(p⇒q ⊗⇒ r⇒z) .map-args (ptag , rtag) (qargs , zargs) = (map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)
 
 _Ⓥ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P Ⓥ  R ⇒ Q Ⓥ Z
 (p⇒q Ⓥ⇒ r⇒z) .map-tag (ptag , rtag) = map-tag p⇒q ptag , map-tag r⇒z rtag
