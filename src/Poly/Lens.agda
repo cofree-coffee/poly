@@ -6,6 +6,9 @@ module Poly.Lens where
 open import Data.Bool using (Bool; true; false)
 open import Data.Product 
 open import Poly
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; cong)
+open Eq.≡-Reasoning
 
 --------------------------------------------------------------------------------
 
@@ -37,3 +40,19 @@ projᵣ = lens proj₂ λ where
 
 example : Bool
 example = view (projₗ ⨟ₚ projᵣ) ((true , false) , false)
+
+example2 : ((Bool × Bool) × Bool)
+example2 = set (projₗ ⨟ₚ projᵣ) true ((true , false) , false)
+
+
+-- view l (set l v s)  ≡ v
+get-set : ∀{A B : Set} → (v : A) → (s : (A × B)) → view projₗ (set projₗ v s) ≡ v
+get-set v s = refl
+
+-- set l (view l s) s  ≡ s
+set-view : ∀{A B : Set} → (s : (A × B)) → (set projₗ (view projₗ s) s) ≡ s
+set-view s = refl
+
+-- set l v' (set l v s) ≡ set l v' s
+set-set : ∀{A B : Set} → (v : A) → (v' : A) → (s : (A × B)) → (set projₗ v' (set projₗ v s)) ≡ set projₗ v' s
+set-set v v' s = refl
