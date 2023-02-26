@@ -8,8 +8,9 @@ open import Function using (_∘_; id)
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Integer using (ℤ)
 import Data.Integer as ℤ
-open import Data.List
+open import Data.List hiding (sum)
 open import Data.Nat using (_⊔_; ℕ; zero)
+import Data.Nat as ℕ
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Unit using (⊤; tt)
@@ -240,16 +241,6 @@ data State : Set where
 
 --------------------------------------------------------------------------------
 
--- | A Moore machine that recieves a natural as input and outputs a natural.
--- 
--- ℕy^ℕ ⇒ ℕy^ℕ
---
--- monomial ℕ ℕ ⇒ monomial ℕ ℕ
-delay : Moore ℕ ℕ ℕ 
-delay = mds id
-
-run-delay = process-moore 0 (1 ∷ 2 ∷ 3 ∷ 4 ∷ []) delay
-
 -- | A Moore machine that sets its state to the max of the input ands
 -- current state.
 --
@@ -261,6 +252,18 @@ map-tag latch = id
 map-args latch = _⊔_
 
 run-latch = process-moore 0 (1 ∷ 2 ∷ 2 ∷ 4 ∷ 3 ∷ 1 ∷ []) latch 
+
+-- | Counter takes unchanging input and produces as output the
+-- sequence of natural numbers 0, 1, 2, 3, ... .
+--
+-- ℕy^ℕ ⇒ ℕy
+--
+-- monomial ℕ ℕ ⇒ monomial ℕ (Fin 1)
+counter : Moore ℕ (Fin 1) ℕ
+counter .map-tag = id
+counter .map-args n zero =  ℕ.suc n
+
+run-counter = process-moore' 0 (zero ∷ zero ∷ zero ∷ zero ∷ []) counter
 
 -- | A Moore machine that receives a constant input and outputs its
 -- state.
@@ -314,32 +317,3 @@ const-1+repeater = const-1 &&& repeater
 -- const-1+repeater .map-args n (inj₂ zero) = n
 
 run-const-1+repeater = process-moore' 0 (inj₁ 1 ∷ inj₂ zero ∷ inj₂ zero ∷ inj₁ 3 ∷ inj₂ zero ∷ []) const-1+repeater'
-
---------------------------------------------------------------------------------
-
--- | Wiring Diagram Example
---
--- Illustration available here:
--- https://www.youtube.com/live/kPfyHwibgzs?feature=share&t=1213
---
--- ACyᴬᴮ ⊗ Byᴬ ⇒ By¹
-
-ACyᴬᴮ : ∀{A B C : Set} → Poly 
-ACyᴬᴮ {A} {B} {C} = monomial (A × C) (A × B)
-
-Byᴬ : ∀{A B : Set} → Poly
-Byᴬ {A} {B} = monomial B A
-
-By¹ : ∀{B : Set} → Poly
-By¹ {B} = monomial B (Fin 1)
-
-diagram : ∀{A B C : Set} → monomial (A × C) (A × B) ⊗ monomial B A ⇒ monomial B (Fin 1)
-diagram .map-tag ((A , C) , B) = B
-diagram .map-args ((A , C) , B) zero = (A , B) , A
-
-
--- ACyᴬᴮ ⊗ Byᴬ ⇒ By¹ ≡ ACByᴬᴮᴬ ⇒ By¹
-
-diagram' : ∀{A B C : Set} → monomial (A × C × B) (A × B × A) ⇒ monomial B (Fin 1)
-diagram' .map-tag (A , C , B) = B
-diagram' .map-args (A , C , B) zero = A , (B , A)
