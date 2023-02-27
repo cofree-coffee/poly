@@ -3,8 +3,10 @@ module Poly.WiringDiagrams where
 
 --------------------------------------------------------------------------------
 
+open import Data.Bool.Base
 open import Function using (_∘_; id)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Sum.Base
 open import Data.Fin using (Fin; suc; zero)
 open import Data.List hiding (sum)
 open import Data.Nat using (_⊔_; ℕ; zero)
@@ -15,12 +17,15 @@ open import Poly.Machines
 open import Poly.Monoidal
 open import Poly.Profunctor
 open import Poly.SetFunctor
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
 
 --------------------------------------------------------------------------------
 
--- | A wiring diagram is a poly map 'P ⇒ Q' where 'Q : Poly' is the
--- outer interface of the diagram and 'Q : Poly' describes the
--- interior mappings of the diagram.
+-- | A wiring diagram is a poly map 'P ⇒ Q' where 'Q' is the outer
+-- interface of the diagram and 'P' describes the interior mappings of
+-- the diagram.
+Diagram : Poly → Poly → Set
+Diagram P Q = P ⇒ Q
 
 --------------------------------------------------------------------------------
 
@@ -37,16 +42,18 @@ Byᴬ {A} {B} = monomial B A
 By¹ : ∀{B : Set} → Poly
 By¹ {B} = monomial B (Fin 1)
 
-ACyᴬᴮ⊗Byᴬ⇒By¹ : ∀{A B C : Set} → monomial (A × C) (A × B) ⊗ monomial B A ⇒ monomial B (Fin 1)
+ACyᴬᴮ⊗Byᴬ⇒By¹ : ∀{A B C : Set} → Diagram (ACyᴬᴮ {A = A} {B = B} {C = C} ⊗ Byᴬ) By¹
 ACyᴬᴮ⊗Byᴬ⇒By¹ .map-tag ((A , C) , B) = B
 ACyᴬᴮ⊗Byᴬ⇒By¹ .map-args ((A , C) , B) zero = (A , B) , A
 
 
--- ACyᴬᴮ ⊗ Byᴬ ⇒ By¹ ≡ ACByᴬᴮᴬ ⇒ By¹
-
+-- | ACByᴬᴮᴬ ⇒ By¹
 ACByᴬᴮᴬ⇒By¹ : ∀{A B C : Set} → monomial (A × C × B) (A × B × A) ⇒ monomial B (Fin 1)
 ACByᴬᴮᴬ⇒By¹ .map-tag (A , C , B) = B
 ACByᴬᴮᴬ⇒By¹ .map-args (A , C , B) zero = A , (B , A)
+
+-- ACyᴬᴮ⊗Byᴬ⇒By¹≡ACByᴬᴮᴬ⇒By¹ : ∀{A B C : Set} → ACyᴬᴮ⊗Byᴬ⇒By¹ ≡ ACByᴬᴮᴬ⇒By¹
+-- ACyᴬᴮ⊗Byᴬ⇒By¹≡ACByᴬᴮᴬ⇒By¹ = refl
 
 
 -- A²y ⊗ yᵃᵃ ⇒ y
