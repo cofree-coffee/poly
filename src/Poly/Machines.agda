@@ -17,6 +17,7 @@ open import Data.Unit using (⊤; tt)
 open import Poly
 open import Poly.Lens
 open import Poly.Monoidal
+open import Poly.Profunctor
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq.≡-Reasoning
@@ -199,8 +200,9 @@ data M : Set where
 Tape : Set → Set
 Tape S = monomial S S ⇒ monomial V (V × M) 
 
+-- monomial S S ⇒ monomial (V ⊎ M) V 
 Processor : Set → Set
-Processor S = monomial S S ⇒ monomial (V ⊎ M) V 
+Processor S = Moore S V (V ⊎ M) 
 
 decide : ℤ → ℤ → (ℤ → V) → V → V
 decide n c f v with n ℤ.≟ c
@@ -210,25 +212,40 @@ decide n c f v with n ℤ.≟ c
 -- | The Tape of a Turing machine has states (V^ℤ × ℤ), outputs V, and
 -- inputs V x {L,R}, so as a Moore machine it is a lens:
 -- 
---   (V^ℤ × ℤ)y^(V^ℤ × ℤ) ⇒ Vy^(V × {L,R})
-tape : monomial ((ℤ → V) × ℤ) ((ℤ → V) × ℤ) ⇒ monomial V (V × M)
-tape .map-tag (f , c) = f c
-tape .map-args (f , c) (v , Left) =  (λ n → decide n c f v) , ℤ.suc c
-tape .map-args (f , c) (v , Right) =  (λ n → decide n c f v) , ℤ.pred c
+--   (V^ℤ × ℤ)y^(V^ℤ × ℤ) ⇒ Vy^(V + {L,R})
+--
+--  monomial ((ℤ → V) × ℤ) ((ℤ → V) × ℤ) ⇒ monomial V (V ⊎ M)
+tape : Moore ((ℤ → V) × ℤ) (V ⊎ M) V
+tape .map-tag (f , z) = f z
+tape .map-args (f , c) (inj₂ Left) = f , (ℤ.pred c)
+tape .map-args (f , c) (inj₂ Right) = f , (ℤ.suc c)
+tape .map-args (f , c) (inj₁ in-v) = (λ n → decide n c f in-v) , c
 
-processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial S S ⇒ monomial (V ⊎ M) V 
+-- monomial S S ⇒ monomial (V ⊎ M) V
+processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore S V (V ⊎ M)
 processor nextCommand updateState .map-tag = nextCommand
 processor nextCommand updateState .map-args = updateState
 
-step-tape : V × M → ((ℤ → V) × ℤ) → monomial ((ℤ → V) × ℤ) ((ℤ → V) × ℤ) ⇒ monomial V (V × M) → V × ((ℤ → V) × ℤ)
-step-tape v×m s tape =  tape .map-tag s , tape .map-args s v×m
+turing-wire : ∀{S : Set} → monomial V (V ⊎ M) ⊗ monomial (V ⊎ M) V ⇒ monomial (Fin 1) (Fin 1) 
+turing-wire .map-tag s = zero
+turing-wire .map-args (tape-output , inj₁ processor-output) zero = (inj₁ processor-output) , tape-output
+turing-wire .map-args (tape-output , inj₂ processr-output) zero = (inj₂ processr-output) , tape-output
+
+tape⊗⇒processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial (((ℤ → V) × ℤ) × S) (((ℤ → V) × ℤ) × S) ⇒ monomial  V (V ⊎ M) ⊗ monomial (V ⊎ M) V
+tape⊗⇒processor nextCommand updateState = tape ⊗⇒ processor nextCommand updateState
+
+turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore ((((ℤ → V) × ℤ) × S)) (Fin 1) (Fin 1)
+turing-machine {S} nextCommand updateState = lmap-⇒ (tape⊗⇒processor nextCommand updateState) (turing-wire {S = S})
+
+run-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → (s : S) → List (Fin 1) × ((((ℤ → V) × ℤ) × S))
+run-turing-machine nextCommand updateState initialState =
+  process-moore' (((λ _ → blank) , ℤ.+0) , initialState) (zero ∷ zero ∷ []) (turing-machine nextCommand updateState)
 
 -- The 3-state busy beaver
 data State : Set where
   a : State
   b : State
   c : State
-  halt : State
 
 -- nextCommand : State → V ⊎ M
 -- nextCommand a = {!!}
