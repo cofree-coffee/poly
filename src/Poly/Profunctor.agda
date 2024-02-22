@@ -21,29 +21,29 @@ lmap-⇒ : ∀{P Q Z : Poly} → Z ⇒ P → P ⇒ Q → Z ⇒ Q
 lmap-⇒ z⇒p p⇒q = dimap-⇒ idₚ z⇒p p⇒q
 
 first : ∀{P Q R : Poly} → P ⇒ Q → (P ⊗ R) ⇒ (Q ⊗ R)
-first p⇒q .map-tag (ptag , rtag) = map-tag p⇒q ptag , rtag
-first p⇒q .map-args (ptag , rtag) (pargs , rargs) = map-args p⇒q ptag pargs , rargs
+first p⇒q .map-base (ptag , rtag) = map-base p⇒q ptag , rtag
+first p⇒q .map-fiber (ptag , rtag) (pargs , rargs) = map-fiber p⇒q ptag pargs , rargs
 
 second : ∀{P Q R : Poly} → P ⇒ Q → (R ⊗ P) ⇒ (R ⊗ Q)
-second p⇒q .map-tag (rtag , ptag) = rtag , map-tag p⇒q ptag
-second p⇒q .map-args (rtag , ptag) (rargs , pargs) = rargs , map-args p⇒q ptag pargs
+second p⇒q .map-base (rtag , ptag) = rtag , map-base p⇒q ptag
+second p⇒q .map-fiber (rtag , ptag) (rargs , pargs) = rargs , map-fiber p⇒q ptag pargs
 
 left : ∀{P Q R : Poly} → P ⇒ Q → (P + R) ⇒ (Q + R)
-left p⇒q .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
-left p⇒q .map-tag (inj₂ rtag) = inj₂ rtag
-left p⇒q .map-args (inj₁ ptag) args = map-args p⇒q ptag args
-left p⇒q .map-args (inj₂ rtag) args = args
+left p⇒q .map-base (inj₁ ptag) = inj₁ (map-base p⇒q ptag)
+left p⇒q .map-base (inj₂ rtag) = inj₂ rtag
+left p⇒q .map-fiber (inj₁ ptag) args = map-fiber p⇒q ptag args
+left p⇒q .map-fiber (inj₂ rtag) args = args
 
 right : ∀{P Q R : Poly} → P ⇒ Q → (R + P) ⇒ (R + Q)
-right p⇒q .map-tag (inj₁ rtag) = inj₁ rtag
-right p⇒q .map-tag (inj₂ ptag) = inj₂ (map-tag p⇒q ptag)
-right p⇒q .map-args (inj₁ rtag) args = args
-right p⇒q .map-args (inj₂ ptag) args = map-args p⇒q ptag args
+right p⇒q .map-base (inj₁ rtag) = inj₁ rtag
+right p⇒q .map-base (inj₂ ptag) = inj₂ (map-base p⇒q ptag)
+right p⇒q .map-fiber (inj₁ rtag) args = args
+right p⇒q .map-fiber (inj₂ ptag) args = map-fiber p⇒q ptag args
 
 -- unfirst : (P ×ₚ R) ⇒ (Q ×ₚ R) → P ⇒ Q
--- (unfirst pr⇒qr) .map-tag tag = map-tag (pr⇒qr ⨟ fstₚ) (tag , {!!} )
--- (unfirst pr⇒qr) .map-args = {!!}
+-- (unfirst pr⇒qr) .map-base tag = map-base (pr⇒qr ⨟ fstₚ) (tag , {!!} )
+-- (unfirst pr⇒qr) .map-fiber = {!!}
 
 -- unsecond : (R ⊗ P) ⇒ (R ⊗ Q) → P ⇒ Q
--- (unsecond rp⇒rq) .map-tag tag = {!!}
--- (unsecond rp⇒rq) .map-args = {!!}
+-- (unsecond rp⇒rq) .map-base tag = {!!}
+-- (unsecond rp⇒rq) .map-fiber = {!!}

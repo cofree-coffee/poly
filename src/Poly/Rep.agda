@@ -44,9 +44,9 @@ record Poly-Rep : Set where
   no-eta-equality
   constructor poly
   field
-    Tag : Set
-    Functors : Tag → Set → Set
-    IsRepr : ∀ (tag : Tag) → IsRepresentable (Functors tag)
+    Base : Set
+    Functors : Base → Set → Set
+    IsRepr : ∀ (tag : Base) → IsRepresentable (Functors tag)
 
 open Poly-Rep public
 
@@ -55,12 +55,12 @@ private variable
   P Q R : Poly-Rep
 
 intoFunctor : Poly-Rep → (Set → Set)
-intoFunctor cor = λ X → Σ[ tag ∈ cor .Tag ] cor .Functors tag X
+intoFunctor cor = λ X → Σ[ tag ∈ cor .Base ] cor .Functors tag X
 
 --------------------------------------------------------------------------------
 
 identityₚ : Poly-Rep
-Tag identityₚ = Fin 1
+Base identityₚ = Fin 1
 Functors identityₚ zero X = Fin 1 → X
 IsRepr identityₚ zero =
   proveIsRepr (Fin 1)
@@ -76,7 +76,7 @@ Identity = intoFunctor identityₚ
 
 -- TODO:
 maybeₚ : Poly-Rep
-Tag maybeₚ = Fin 2
+Base maybeₚ = Fin 2
 Functors maybeₚ zero X = Fin 0 → X
 Functors maybeₚ (suc zero) X = Fin 1 → X
 IsRepr maybeₚ zero = proveIsRepr (Fin 0) (record { to = λ f () ; from = λ g () ; from∘to = λ f → {!!} ; to∘from = λ y → {!!} })

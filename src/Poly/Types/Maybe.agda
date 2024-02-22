@@ -10,9 +10,9 @@ open import Poly
 --------------------------------------------------------------------------------
 
 maybeₚ : Poly
-Tag maybeₚ = Fin 2
-Args maybeₚ zero = Fin 0
-Args maybeₚ (suc x) = Fin 1
+Base maybeₚ = Fin 2
+Fiber maybeₚ zero = Fin 0
+Fiber maybeₚ (suc x) = Fin 1
 
 Maybe : Set → Set
 Maybe = ⟦ maybeₚ ⟧

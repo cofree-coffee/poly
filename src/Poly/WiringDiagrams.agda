@@ -43,14 +43,14 @@ By¹ : ∀{B : Set} → Poly
 By¹ {B} = monomial B (Fin 1)
 
 ACyᴬᴮ⊗Byᴬ⇒By¹ : ∀{A B C : Set} → Diagram (ACyᴬᴮ {A = A} {B = B} {C = C} ⊗ Byᴬ) By¹
-ACyᴬᴮ⊗Byᴬ⇒By¹ .map-tag ((A , C) , B) = B
-ACyᴬᴮ⊗Byᴬ⇒By¹ .map-args ((A , C) , B) zero = (A , B) , A
+ACyᴬᴮ⊗Byᴬ⇒By¹ .map-base ((A , C) , B) = B
+ACyᴬᴮ⊗Byᴬ⇒By¹ .map-fiber ((A , C) , B) zero = (A , B) , A
 
 
 -- | ACByᴬᴮᴬ ⇒ By¹
 ACByᴬᴮᴬ⇒By¹ : ∀{A B C : Set} → monomial (A × C × B) (A × B × A) ⇒ monomial B (Fin 1)
-ACByᴬᴮᴬ⇒By¹ .map-tag (A , C , B) = B
-ACByᴬᴮᴬ⇒By¹ .map-args (A , C , B) zero = A , (B , A)
+ACByᴬᴮᴬ⇒By¹ .map-base (A , C , B) = B
+ACByᴬᴮᴬ⇒By¹ .map-fiber (A , C , B) zero = A , (B , A)
 
 -- ACyᴬᴮ⊗Byᴬ⇒By¹≡ACByᴬᴮᴬ⇒By¹ : ∀{A B C : Set} → ACyᴬᴮ⊗Byᴬ⇒By¹ ≡ ACByᴬᴮᴬ⇒By¹
 -- ACyᴬᴮ⊗Byᴬ⇒By¹≡ACByᴬᴮᴬ⇒By¹ = refl
@@ -58,14 +58,14 @@ ACByᴬᴮᴬ⇒By¹ .map-args (A , C , B) zero = A , (B , A)
 
 -- A²y ⊗ yᵃᵃ ⇒ y
 --
--- ----         ----
+-- +--+         +--+
 -- |  |-A------A|  |
 -- |  |-A------A|  |
--- ----         ----
+-- +--+         +--+
 --
 A²y⊗yᵃᵃ⇒y : ∀{A : Set} → monomial (A × A) (Fin 1) ⇒ monomial (Fin 1) (Fin 1)
-A²y⊗yᵃᵃ⇒y .map-tag (A₁ , A₂) = zero
-A²y⊗yᵃᵃ⇒y .map-args (A₁ , A₂) zero = zero
+A²y⊗yᵃᵃ⇒y .map-base (A₁ , A₂) = zero
+A²y⊗yᵃᵃ⇒y .map-fiber (A₁ , A₂) zero = zero
 
 -- | Receives a natural as input and outputs a natural.
 -- 
@@ -86,8 +86,8 @@ sum = mds λ (x , y) → x ℕ.+ y
 --
 -- ℕy^(ℕ×ℕ) ⊗ ℕy^ℕ ⇒ ℕy¹
 fib-wire : ∀{A : Set} → monomial A (A × A) ⊗ monomial A A ⇒ monomial A (Fin 1) 
-fib-wire .map-tag (A , B) = B
-fib-wire .map-args (A , B) zero = (A , B) , A
+fib-wire .map-base (A , B) = B
+fib-wire .map-fiber (A , B) zero = (A , B) , A
 
 -- | The parallel composition of 'sum' and 'delay'
 delay⊗⇒sum : monomial (ℕ × ℕ) (ℕ × ℕ) ⇒ monomial ℕ (ℕ × ℕ) ⊗ monomial ℕ ℕ

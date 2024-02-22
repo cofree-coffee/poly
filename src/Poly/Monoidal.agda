@@ -20,9 +20,21 @@ open _≃_
 -- P + Q ≔ ∑[ j ∈ I ] x^aᵢ + ∑[ j ∈ J ] y^bⱼ
 infixr 6 _+_
 _+_ : Poly → Poly → Poly
-(P + Q) .Tag = P .Tag ⊎ Q .Tag
-(P + Q) .Args (inj₁ x) = P .Args x
-(P + Q) .Args (inj₂ y) = Q .Args y
+(P + Q) .Base = P .Base ⊎ Q .Base
+(P + Q) .Fiber (inj₁ x) = P .Fiber x
+(P + Q) .Fiber (inj₂ y) = Q .Fiber y
+
+_+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
+(p⇒q +⇒ r⇒z) .map-base (inj₁ ptag) = inj₁ (map-base p⇒q ptag)
+(p⇒q +⇒ r⇒z) .map-base (inj₂ rtag) = inj₂ (map-base r⇒z rtag)
+(p⇒q +⇒ r⇒z) .map-fiber (inj₁ ptag) = map-fiber p⇒q ptag
+(p⇒q +⇒ r⇒z) .map-fiber (inj₂ rtag) = map-fiber r⇒z rtag
+
+mergeₚ : ∀{P : Poly} → P + P ⇒ P
+mergeₚ .map-base (inj₁ ptag) = ptag
+mergeₚ .map-base (inj₂ ptag) = ptag
+mergeₚ .map-fiber (inj₁ ptag) pargs = pargs
+mergeₚ .map-fiber (inj₂ ptag) pargs = pargs
 
 -- | Co-Product Left Inclusion
 leftₚ : ∀{P Q : Poly} → P ⇒ (P + Q) 
@@ -36,20 +48,14 @@ rightₚ .map-args tag = id
 
 -- | Co-Product eliminator
 eitherₚ : ∀{P Q R : Poly} → P ⇒ R → Q ⇒ R → (P + Q) ⇒ R
-eitherₚ p⇒r q⇒r .map-tag (inj₁ ptag) = p⇒r .map-tag ptag
-eitherₚ p⇒r q⇒r .map-tag (inj₂ qtag) = q⇒r .map-tag qtag
-eitherₚ p⇒r q⇒r .map-args (inj₁ tag) = p⇒r .map-args tag
-eitherₚ p⇒r q⇒r .map-args (inj₂ tag) = q⇒r .map-args tag
-
-mergeₚ : ∀{P : Poly} → P + P ⇒ P
-mergeₚ .map-tag (inj₁ ptag) = ptag
-mergeₚ .map-tag (inj₂ ptag) = ptag
-mergeₚ .map-args (inj₁ ptag) pargs = pargs
-mergeₚ .map-args (inj₂ ptag) pargs = pargs
+eitherₚ p⇒r q⇒r .map-base (inj₁ ptag) = p⇒r .map-base ptag
+eitherₚ p⇒r q⇒r .map-base (inj₂ qtag) = q⇒r .map-base qtag
+eitherₚ p⇒r q⇒r .map-fiber (inj₁ tag) = p⇒r .map-fiber tag
+eitherₚ p⇒r q⇒r .map-fiber (inj₂ tag) = q⇒r .map-fiber tag
 
 Sum : (I : Set) → (I → Poly) → Poly
-Sum I P .Tag = ∃[ i ] P i .Tag
-Sum I P .Args (i , ptag) = P i .Args ptag
+Sum I P .Base = ∃[ i ] P i .Base
+Sum I P .Fiber (i , ptag) = P i .Fiber ptag
 
 infix 2 Sum
 syntax Sum I (λ i → P) = Σₚ[ i ∈ I ] P
@@ -72,8 +78,8 @@ syntax Sum I (λ i → P) = Σₚ[ i ∈ I ] P
 -- ⟦ P ◁ Q ⟧ ≡ ⟦ P ⟧ ∘ ⟦ Q ⟧
 -- Σ ? Π ?   ≡ Σ Π (Σ Π)
 _◁_ : Poly → Poly → Poly
-(P ◁ Q) .Tag = Σ[ ptag ∈ P .Tag ] (P .Args ptag → Q .Tag) 
-(P ◁ Q) .Args  (ptag , f) =  Σ[ pargs ∈ P .Args ptag ] Q .Args (f pargs)
+(P ◁ Q) .Base = Σ[ ptag ∈ P .Base ] (P .Fiber ptag → Q .Base) 
+(P ◁ Q) .Fiber  (ptag , f) =  Σ[ pargs ∈ P .Fiber ptag ] Q .Fiber (f pargs)
 
 ⟦⟧-◁ : ∀{P Q : Poly} → ⟦ P ◁ Q ⟧ ≃ ⟦ P ⟧ ∘ ⟦ Q ⟧
 ⟦⟧-◁ .to ((ptag , qtag) , f) = ptag , λ pargs → qtag pargs , λ qargs → f (pargs , qargs)
@@ -85,36 +91,36 @@ _◁_ : Poly → Poly → Poly
 --
 -- The Binary Categorical Product
 --
--- Σ[ (i , j) ∈ P .Tag × Q .Tag ] x^(aᵢ + bⱼ)
+-- Σ[ (i , j) ∈ P .Base × Q .Base ] x^(aᵢ + bⱼ)
 infixr 7 _×ₚ_
 _×ₚ_ : Poly → Poly → Poly
-(P ×ₚ Q) .Tag  =  P .Tag × Q .Tag
-(P ×ₚ Q) .Args (ptag , qtag) = P .Args ptag ⊎ Q .Args qtag
+(P ×ₚ Q) .Base  =  P .Base × Q .Base
+(P ×ₚ Q) .Fiber (ptag , qtag) = P .Fiber ptag ⊎ Q .Fiber qtag
 
 -- | _×ₚ_ fst eliminator
 fst-×ₚ : ∀{P Q : Poly} → (P ×ₚ Q) ⇒ P
-fst-×ₚ .map-tag (ptag , qtag) = ptag
-fst-×ₚ .map-args (ptag , qtag) pargs = inj₁ pargs
+fst-×ₚ .map-base (ptag , qtag) = ptag
+fst-×ₚ .map-fiber (ptag , qtag) pargs = inj₁ pargs
 
 -- | _×ₚ_ snd eliminator
 snd-×ₚ : ∀{P Q : Poly} → (P ×ₚ Q) ⇒ Q
-snd-×ₚ .map-tag (ptag , qtag) = qtag
-snd-×ₚ .map-args (ptag , qtag) qargs = inj₂ qargs
+snd-×ₚ .map-base (ptag , qtag) = qtag
+snd-×ₚ .map-fiber (ptag , qtag) qargs = inj₂ qargs
 
 swap-×ₚ : ∀{P Q : Poly} → (P ×ₚ Q) ⇒ (Q ×ₚ P)
-swap-×ₚ .map-tag (ptag , qtag) = qtag , ptag
-swap-×ₚ .map-args (ptag , qtag) (inj₁ qargs) = inj₂ qargs
-swap-×ₚ .map-args (ptag , qtag) (inj₂ pargs) = inj₁ pargs
+swap-×ₚ .map-base (ptag , qtag) = qtag , ptag
+swap-×ₚ .map-fiber (ptag , qtag) (inj₁ qargs) = inj₂ qargs
+swap-×ₚ .map-fiber (ptag , qtag) (inj₂ pargs) = inj₁ pargs
 
 dupe-×ₚ : ∀{P : Poly} → P ⇒ P ×ₚ P
-dupe-×ₚ .map-tag ptag =  ptag , ptag
-dupe-×ₚ .map-args ptag (inj₁ pargs) = pargs
-dupe-×ₚ .map-args ptag (inj₂ pargs) = pargs
+dupe-×ₚ .map-base ptag =  ptag , ptag
+dupe-×ₚ .map-fiber ptag (inj₁ pargs) = pargs
+dupe-×ₚ .map-fiber ptag (inj₂ pargs) = pargs
 
 _&&&_ : ∀{P Q R : Poly} → R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
-(f &&& g) .map-tag rtag =  map-tag f rtag , map-tag g rtag
-(f &&& g) .map-args rtag (inj₁ pargs) = map-args f rtag pargs
-(f &&& g) .map-args rtag (inj₂ qargs) = map-args g rtag qargs
+(f &&& g) .map-base rtag =  map-base f rtag , map-base g rtag
+(f &&& g) .map-fiber rtag (inj₁ pargs) = map-fiber f rtag pargs
+(f &&& g) .map-fiber rtag (inj₂ qargs) = map-fiber g rtag qargs
 
 ⟦⟧-×ₚ : ∀{P Q : Poly} → ⟦ P ×ₚ Q ⟧ ≃ ⟦ P ⟧ ×₁ ⟦ Q ⟧
 ⟦⟧-×ₚ .to ((ptag , qtag) , f) = (ptag , λ pargs → f (inj₁ pargs)) , (qtag , λ qargs → f (inj₂ qargs))
@@ -122,8 +128,8 @@ _&&&_ : ∀{P Q R : Poly} → R ⇒ P → R ⇒ Q → R ⇒ (P ×ₚ Q)
 
 -- | p ×ₚ q can be recovered as Product Bool (if _ then q else p)
 Product : (I : Set) → (I → Poly) → Poly
-(Product I f) .Tag = ∀ (i : I) → f i .Tag
-(Product I f) .Args tags = Σ[ i ∈ I ] (f i) .Args (tags i)
+(Product I f) .Base = ∀ (i : I) → f i .Base
+(Product I f) .Fiber tags = Σ[ i ∈ I ] (f i) .Fiber (tags i)
 
 infix 2 Product
 syntax Product I (λ i → P) = Πₚ[ i ∈ I ] P
@@ -137,35 +143,35 @@ syntax Product I (λ i → P) = Πₚ[ i ∈ I ] P
 -- | P ⊗ Q
 -- Also called the Parallel Product of two Polynomials
 --
--- P ⊗ Q ≔ ∑[ i ∈ P .Tag × Q .Tag ] y^(aᵢ × bⱼ)
+-- P ⊗ Q ≔ ∑[ i ∈ P .Base × Q .Base ] y^(aᵢ × bⱼ)
 infixr 7 _⊗_
 _⊗_ : Poly → Poly → Poly
-(P ⊗ Q) .Tag  = Tag P × Tag Q
-(P ⊗ Q) .Args (ptag , qtag) = Args P ptag × Args Q qtag
+(P ⊗ Q) .Base  = Base P × Base Q
+(P ⊗ Q) .Fiber (ptag , qtag) = Fiber P ptag × Fiber Q qtag
 
 swap-⊗ : ∀{P Q : Poly} → P ⊗ Q ⇒ Q ⊗ P
-swap-⊗ .map-tag (ptag , qtag) = qtag , ptag
-swap-⊗ .map-args tag (qargs , pargs) = pargs , qargs
+swap-⊗ .map-base (ptag , qtag) = qtag , ptag
+swap-⊗ .map-fiber tag (qargs , pargs) = pargs , qargs
 
 dupe-⊗ : ∀{P : Poly} → P ⇒ P ⊗ P
-dupe-⊗ .map-tag ptag =  ptag , ptag
-dupe-⊗ .map-args ptag (f , g) = f
+dupe-⊗ .map-base ptag =  ptag , ptag
+dupe-⊗ .map-fiber ptag (f , g) = f
 
 -- | The parallel product represents day convolution.
 ⟦⟧-⊗ : ∀{P Q : Poly} → ⟦ P ⊗ Q ⟧ ≃ day ⟦ P ⟧ ⟦ Q ⟧
-⟦⟧-⊗ {P = P} {Q = Q} .to ((ptag , qtag) , f) = P .Args ptag , Q .Args qtag , (λ pargs qargs → f (pargs , qargs)) , (ptag , id) , (qtag , id)
+⟦⟧-⊗ {P = P} {Q = Q} .to ((ptag , qtag) , f) = P .Fiber ptag , Q .Fiber qtag , (λ pargs qargs → f (pargs , qargs)) , (ptag , id) , (qtag , id)
 ⟦⟧-⊗ .from (B , C , f , (ptag , b) , (qtag , c)) = (ptag , qtag) , λ (pargs , qargs) → f (b pargs) (c qargs)
 
 --------------------------------------------------------------------------------
 
 -- | P Ⓥ Q
 --
--- Σ[ (i , j) ∈ P .Tag × Q . Tag] x^(aᵢ Ⓥ bⱼ)
+-- Σ[ (i , j) ∈ P .Base × Q . Base] x^(aᵢ Ⓥ bⱼ)
 infixr 8 _Ⓥ_
 _Ⓥ_ : Poly → Poly → Poly
-(P Ⓥ Q) .Tag = P .Tag × Q .Tag
-(P Ⓥ Q) .Args = λ where
-  (ptag , qtag) →  Args P ptag ⊎ (Args P ptag × Args Q qtag) ⊎ Args Q qtag
+(P Ⓥ Q) .Base = P .Base × Q .Base
+(P Ⓥ Q) .Fiber = λ where
+  (ptag , qtag) →  Fiber P ptag ⊎ (Fiber P ptag × Fiber Q qtag) ⊎ Fiber Q qtag
 
 --------------------------------------------------------------------------------
 
@@ -178,27 +184,27 @@ P ∨ Q = P + (P ⊗ Q) + Q
 
 -- | _∨_ This Inclusion
 This : ∀{P Q : Poly} → P ⇒ (P ∨ Q)
-This .map-tag ptag = inj₁ ptag
-This .map-args ptag = id
+This .map-base ptag = inj₁ ptag
+This .map-fiber ptag = id
 
 -- | _∨_ That Inclusion
 That : ∀{P Q : Poly} → Q ⇒ (P ∨ Q)
-That .map-tag qtag = inj₂ (inj₂ qtag)
-That .map-args qtag = id
+That .map-base qtag = inj₂ (inj₂ qtag)
+That .map-fiber qtag = id
 
 -- | _∨_ These Inclusion
 These : ∀{P Q : Poly} → (P ⊗ Q) ⇒ (P ∨ Q)
-These .map-tag tags = inj₂ (inj₁ tags)
-These .map-args tags = id
+These .map-base tags = inj₂ (inj₁ tags)
+These .map-fiber tags = id
 
 -- | _∨_ Eliminator
 theseₚ : ∀{P Q R : Poly} → P ⇒ R → Q ⇒ R → (P ⊗ Q) ⇒ R → (P ∨ Q) ⇒ R
-(theseₚ p⇒r q⇒r pq⇒r) .map-tag  (inj₁ ptag) = map-tag p⇒r ptag
-(theseₚ p⇒r q⇒r pq⇒r) .map-tag (inj₂ (inj₁ tags)) = map-tag pq⇒r tags
-(theseₚ p⇒r q⇒r pq⇒r) .map-tag (inj₂ (inj₂ qtag)) = map-tag q⇒r qtag
-(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₁ ptag) args = map-args p⇒r ptag args
-(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₂ (inj₁ tags)) args = map-args pq⇒r tags args
-(theseₚ p⇒r q⇒r pq⇒r) .map-args (inj₂ (inj₂ qtag)) args = map-args q⇒r qtag args
+(theseₚ p⇒r q⇒r pq⇒r) .map-base  (inj₁ ptag) = map-base p⇒r ptag
+(theseₚ p⇒r q⇒r pq⇒r) .map-base (inj₂ (inj₁ tags)) = map-base pq⇒r tags
+(theseₚ p⇒r q⇒r pq⇒r) .map-base (inj₂ (inj₂ qtag)) = map-base q⇒r qtag
+(theseₚ p⇒r q⇒r pq⇒r) .map-fiber (inj₁ ptag) args = map-fiber p⇒r ptag args
+(theseₚ p⇒r q⇒r pq⇒r) .map-fiber (inj₂ (inj₁ tags)) args = map-fiber pq⇒r tags args
+(theseₚ p⇒r q⇒r pq⇒r) .map-fiber (inj₂ (inj₂ qtag)) args = map-fiber q⇒r qtag args
 --theseₚ p⇒r q⇒r pq⇒r = {!!}
 
 --------------------------------------------------------------------------------
@@ -222,9 +228,9 @@ P ⊛ Q = P + (P Ⓥ Q) + Q
 --------------------------------------------------------------------------------
 
 _×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×ₚ Z
-(p⇒q ×ₚ⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
-(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
-(p⇒q ×ₚ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ zargs) = inj₂ (map-args r⇒z rtag zargs)
+(p⇒q ×ₚ⇒ r⇒z) .map-base (ptag , rtag) = (map-base p⇒q ptag) , (map-base r⇒z rtag)
+(p⇒q ×ₚ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₁ qargs) = inj₁ (map-fiber p⇒q ptag qargs)
+(p⇒q ×ₚ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₂ zargs) = inj₂ (map-fiber r⇒z rtag zargs)
 
 -- | Parallel composition of systems, eg. the Parallel Product of
 -- natural transformations between polynomials.
@@ -236,29 +242,23 @@ _×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×�
 --
 -- (Syˢ ⇒ Byᴬ) ⊗⇒ (Tyᵗ ⇒ Dyᶜ) ≡ STyˢᵗ ⇒ BDyᵃᶜ
 _⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
-(p⇒q ⊗⇒ r⇒z) .map-tag (ptag , rtag) = (map-tag p⇒q ptag) , (map-tag r⇒z rtag)
-(p⇒q ⊗⇒ r⇒z) .map-args (ptag , rtag) (qargs , zargs) = (map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)
-
-_+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
-(p⇒q +⇒ r⇒z) .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
-(p⇒q +⇒ r⇒z) .map-tag (inj₂ rtag) = inj₂ (map-tag r⇒z rtag)
-(p⇒q +⇒ r⇒z) .map-args (inj₁ ptag) = map-args p⇒q ptag
-(p⇒q +⇒ r⇒z) .map-args (inj₂ rtag) = map-args r⇒z rtag
+(p⇒q ⊗⇒ r⇒z) .map-base (ptag , rtag) = (map-base p⇒q ptag) , (map-base r⇒z rtag)
+(p⇒q ⊗⇒ r⇒z) .map-fiber (ptag , rtag) (qargs , zargs) = (map-fiber p⇒q ptag qargs) , (map-fiber r⇒z rtag zargs)
 
 _◁⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ◁ R ⇒ Q ◁ Z
-(p⇒q ◁⇒ r⇒z) .map-tag (ptag , parg→rtag) = (map-tag p⇒q ptag) , λ qargs → map-tag r⇒z (parg→rtag (map-args p⇒q ptag qargs))
-(p⇒q ◁⇒ r⇒z) .map-args (ptag , parg→rtag) (qargs , zargs) = map-args p⇒q ptag qargs , map-args r⇒z (parg→rtag (map-args p⇒q ptag qargs)) zargs
+(p⇒q ◁⇒ r⇒z) .map-base (ptag , parg→rtag) = (map-base p⇒q ptag) , λ qargs → map-base r⇒z (parg→rtag (map-fiber p⇒q ptag qargs))
+(p⇒q ◁⇒ r⇒z) .map-fiber (ptag , parg→rtag) (qargs , zargs) = map-fiber p⇒q ptag qargs , map-fiber r⇒z (parg→rtag (map-fiber p⇒q ptag qargs)) zargs
 
 _Ⓥ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P Ⓥ  R ⇒ Q Ⓥ Z
-(p⇒q Ⓥ⇒ r⇒z) .map-tag (ptag , rtag) = map-tag p⇒q ptag , map-tag r⇒z rtag
-(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₁ qargs) = inj₁ (map-args p⇒q ptag qargs)
-(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ (inj₁ (qargs , zargs))) = inj₂ (inj₁ ((map-args p⇒q ptag qargs) , (map-args r⇒z rtag zargs)))
-(p⇒q Ⓥ⇒ r⇒z) .map-args (ptag , rtag) (inj₂ (inj₂ zargs)) = inj₂ (inj₂ (map-args r⇒z rtag zargs))
+(p⇒q Ⓥ⇒ r⇒z) .map-base (ptag , rtag) = map-base p⇒q ptag , map-base r⇒z rtag
+(p⇒q Ⓥ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₁ qargs) = inj₁ (map-fiber p⇒q ptag qargs)
+(p⇒q Ⓥ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₂ (inj₁ (qargs , zargs))) = inj₂ (inj₁ ((map-fiber p⇒q ptag qargs) , (map-fiber r⇒z rtag zargs)))
+(p⇒q Ⓥ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₂ (inj₂ zargs)) = inj₂ (inj₂ (map-fiber r⇒z rtag zargs))
 
 _∨⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ∨ R ⇒ Q ∨ Z
-(p⇒q ∨⇒ r⇒z) .map-tag (inj₁ ptag) = inj₁ (map-tag p⇒q ptag)
-(p⇒q ∨⇒ r⇒z) .map-tag (inj₂ (inj₁ (ptag , rtag))) = inj₂ (inj₁ ((map-tag p⇒q ptag) , (map-tag r⇒z rtag)))
-(p⇒q ∨⇒ r⇒z) .map-tag (inj₂ (inj₂ rtag)) = inj₂ (inj₂ (map-tag r⇒z rtag))
-(p⇒q ∨⇒ r⇒z) .map-args (inj₁ ptag) args = map-args p⇒q ptag args
-(p⇒q ∨⇒ r⇒z) .map-args (inj₂ (inj₁ (ptag , rtag))) (qargs , zargs) = (map-args p⇒q ptag qargs) , map-args r⇒z rtag zargs
-(p⇒q ∨⇒ r⇒z) .map-args (inj₂ (inj₂ rtag)) args = map-args r⇒z rtag args
+(p⇒q ∨⇒ r⇒z) .map-base (inj₁ ptag) = inj₁ (map-base p⇒q ptag)
+(p⇒q ∨⇒ r⇒z) .map-base (inj₂ (inj₁ (ptag , rtag))) = inj₂ (inj₁ ((map-base p⇒q ptag) , (map-base r⇒z rtag)))
+(p⇒q ∨⇒ r⇒z) .map-base (inj₂ (inj₂ rtag)) = inj₂ (inj₂ (map-base r⇒z rtag))
+(p⇒q ∨⇒ r⇒z) .map-fiber (inj₁ ptag) args = map-fiber p⇒q ptag args
+(p⇒q ∨⇒ r⇒z) .map-fiber (inj₂ (inj₁ (ptag , rtag))) (qargs , zargs) = (map-fiber p⇒q ptag qargs) , map-fiber r⇒z rtag zargs
+(p⇒q ∨⇒ r⇒z) .map-fiber (inj₂ (inj₂ rtag)) args = map-fiber r⇒z rtag args

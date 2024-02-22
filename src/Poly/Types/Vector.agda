@@ -8,15 +8,20 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (_,_; Σ-syntax)
 open import Poly
 open import Poly.Types.List
-
+open import Data.Bool
 --------------------------------------------------------------------------------
 
 vector : ℕ → Poly
-(vector n) .Tag  = Fin 1
-(vector n) .Args  = λ _ → Fin n
+(vector n) .Base  = Fin 1
+(vector n) .Fiber  = λ _ → Fin n
 
 Vector : ℕ → Set → Set
 Vector n = ⟦ vector n ⟧
+
+length2 : Vector 2 Bool
+length2 = zero , λ where
+  zero → true
+  (suc x) → true
 
 vnil : ∀{A : Set} → Vector 0 A
 vnil = zero , λ ()

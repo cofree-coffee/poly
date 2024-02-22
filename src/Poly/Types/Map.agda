@@ -13,8 +13,8 @@ open import Relation.Binary.PropositionalEquality using (subst; sym)
 --------------------------------------------------------------------------------
 
 Mapₚ : (K : Set) → Poly
-(Mapₚ K) .Tag = K → Bool
-Mapₚ K .Args = λ k→bool →  Σ[ k ∈ K ] T (k→bool k)
+(Mapₚ K) .Base = K → Bool
+Mapₚ K .Fiber = λ k→bool →  Σ[ k ∈ K ] T (k→bool k)
 
 Map : (K : Set) → (V : Set) → Set
 Map K V = ⟦ Mapₚ K ⟧ V

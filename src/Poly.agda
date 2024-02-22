@@ -23,19 +23,19 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 --
 -- p ≔ Σ[ i ∈ p(1) ] y^p[i]
 --
--- where @p(1)@ denotes a @P .Tag@ and @p[i]@ denotes the function @P .Args i@.
+-- where @p(1)@ denotes a @P .Base@ and @p[i]@ denotes the function @P .Fiber i@.
 --
 -- We prefer the following equivalent form, as it more closely matches
 -- agda's sigma syntax, which will be used henceforth:
 --
 -- p x ≔ Σ[ i ∈ I ] x^aᵢ
 --
--- I is thus @P .Tag@ and @aᵢ@ is @P .Args i@.
+-- I is thus @P .Base@ and @aᵢ@ is @P .Fiber i@.
 record Poly : Set where
   constructor poly
   field
-    Tag : Set
-    Args : Tag → Set
+    Base : Set
+    Fiber : Base → Set
 
 open Poly public
 
@@ -43,7 +43,7 @@ open Poly public
 
 -- | Interpretation of a Poly as a functor @Set → Set@
 ⟦_⟧ : ∀ {a b} → Poly → (Set a → Set b)
-⟦ P ⟧ X = Σ[ tag ∈ P .Tag ] (P .Args tag → X)
+⟦ P ⟧ X = Σ[ tag ∈ P .Base ] (P .Fiber tag → X)
 
 mapₚ : ∀{P : Poly} → ∀{A B : Set} → (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
 mapₚ f (tag , args) = tag , λ x → f (args x)
@@ -53,63 +53,59 @@ mapₚ f (tag , args) = tag , λ x → f (args x)
 
 -- | Building a monomial.
 --
--- type MonomialExample = (i, (y₁, y₂, ..., yₐ))
--- 
--- MonomialExample ≡ i · yᵃ
+-- m y ≡ y³ 
 --
--- m x ≡ x³ 
---
--- m x ≡ Σ[ i ∈ Fin 1 ] ((i → Set) → x)  
-m : {X : Set} → Poly
-(m {X}) .Tag = Fin 1
-(m {X}) .Args = λ where
-  zero → X × X × X
+-- m y ≡ Σ[ i ∈ Fin 1 ] ((i → Set) → y)  
+m : Poly
+m .Base = Fin 1
+m .Fiber = λ where
+  zero → Fin 3
 
 -- | Building a Polynomial.
 --
 -- data P x = Foo x x x | Bar x x | Baz x | Qux
 -- 
--- P x ≡ x³ + x² + x + 1
+-- P y ≡ y³ + y² + y + 1
 -- 
--- P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
+-- P y ≡ Σ [ i ∈ Fin 4 ] y^aᵢ 
 --   where
 --     a : Fin 4 → Set
 -- 
--- x^(aᵢ) ≡ a i → x
-p : {X : Set} → Poly
-(p {X}) .Tag = Fin 4
-(p {X}) .Args  = λ where
-  zero →  X × X × X
-  (suc zero) →  X × X
-  (suc (suc zero)) →  X
-  (suc (suc (suc zero))) → ⊤
+-- y^(aᵢ) ≡ a i → y
+p : Poly
+p .Base = Fin 4
+p .Fiber  = λ where
+  zero →  Fin 2
+  (suc zero) → Fin 1
+  (suc (suc zero)) →  Fin 1
+  (suc (suc (suc zero))) → Fin 0
 
--- | P x ≡ Σ [ i ∈ Fin 4 ] x^aᵢ 
-_ : ∀ {X : Set} → (⟦ p {X = X} ⟧ X) ≡ (Σ[ i ∈ Fin 4 ] (p .Args i → X))
+-- | P y ≡ Σ [ i ∈ Fin 4 ] y^aᵢ 
+_ : ∀ {Y : Set} → (⟦ p ⟧ Y) ≡ (Σ[ i ∈ Fin 4 ] (p .Fiber i → Y))
 _ = refl
 
 -- | Adding coefficients to a polynomial.
 --
--- data Q x = Foo x x x | Bar x x | Baz Bool x | Qux
+-- data Q y = Foo y y y | Bar y y | Baz Bool y | Qux
 -- 
--- Q x ≡ x³ + x² + (2 · x) + x⁰
+-- Q y ≡ y³ + y² + (2 · y) + y⁰
 -- 
--- Q x ≡ Σ[ i ∈ Fin 5 ] x^aᵢ
-q : {X : Set} → Poly
-(q {X}) .Tag  = Fin 5
-(q {X}) .Args = λ where
-  zero →  X × X × X
-  (suc zero) → X × X
-  (suc (suc zero)) → X
-  (suc (suc (suc zero))) → X
-  (suc (suc (suc (suc zero)))) → ⊤
+-- Q y ≡ Σ[ i ∈ Fin 5 ] y^aᵢ
+q : Poly
+q .Base  = Fin 5
+q .Fiber = λ where
+  zero →  Fin 3
+  (suc zero) → Fin 2
+  (suc (suc zero)) → Fin 1
+  (suc (suc (suc zero))) → Fin 1
+  (suc (suc (suc (suc zero)))) → Fin 0
 
 --------------------------------------------------------------------------------
 
--- | S × Xᵀ
+-- | S × Yᵀ
 monomial : Set → Set → Poly
-(monomial S T) .Tag = S
-(monomial S T) .Args  = λ _ → T
+(monomial S T) .Base = S
+(monomial S T) .Fiber  = λ _ → T
 
 -- | S × X⁰
 constant : Set → Poly
@@ -149,19 +145,19 @@ infixr 0 _⇒_
 record _⇒_ (P Q : Poly) : Set where
   constructor poly-map
   field
-    map-tag : P .Tag → Q .Tag 
-    map-args : (tag : P .Tag ) → Q .Args (map-tag tag) → P .Args tag
+    map-base : P .Base → Q .Base 
+    map-fiber : (tag : P .Base ) → Q .Fiber (map-base tag) → P .Fiber tag
 
 open _⇒_ public
 
 -- | Transform a map between polynomials into a natural
 -- | transformation (a polymorphic function).
 _⟨$⟩_ : ∀{P Q : Poly} → P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
-p⇒q ⟨$⟩ (tag , args) = map-tag p⇒q tag , λ qargs → args (map-args p⇒q tag qargs)
+p⇒q ⟨$⟩ (tag , args) = map-base p⇒q tag , λ qargs → args (map-fiber p⇒q tag qargs)
 
 idₚ : ∀{P : Poly} → P ⇒ P
-idₚ .map-tag tag = tag
-idₚ .map-args tag args = args
+idₚ .map-base tag = tag
+idₚ .map-fiber tag args = args
 
 -- | higher order identity
 inert : ∀{A B : Set} → ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
@@ -169,12 +165,12 @@ inert (tt , f) a = f tt a
 
 infixr 4 _⨟ₚ_
 _⨟ₚ_ : ∀{P Q R : Poly} → P ⇒ Q → Q ⇒ R → P ⇒ R
-(p⇒q ⨟ₚ q⇒r) .map-tag = q⇒r .map-tag ∘ p⇒q .map-tag
-(p⇒q ⨟ₚ q⇒r) .map-args ptag rargs = p⇒q .map-args ptag (map-args q⇒r (map-tag p⇒q ptag) rargs)
+(p⇒q ⨟ₚ q⇒r) .map-base = q⇒r .map-base ∘ p⇒q .map-base
+(p⇒q ⨟ₚ q⇒r) .map-fiber ptag rargs = p⇒q .map-fiber ptag (map-fiber q⇒r (map-base p⇒q ptag) rargs)
 
 polymap : ∀{P Q : Poly} → ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
-polymap f .map-tag ptag = proj₁ (f (ptag , id))
-polymap f .map-args ptag qargs = proj₂ (f (ptag , id)) qargs
+polymap f .map-base ptag = proj₁ (f (ptag , id))
+polymap f .map-fiber ptag qargs = proj₂ (f (ptag , id)) qargs
 
 ⟦⟧-monomial : ∀{S T : Set} → ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
 ⟦⟧-monomial = refl

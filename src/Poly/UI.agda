@@ -20,8 +20,8 @@ private variable
 -- Redux
 
 mkReduxStore : (S → I → S) →  Moore S I S
-(mkReduxStore reducer .map-tag) = proj₁
-mkReduxStore reducer .map-args (state , tt) = reducer state
+(mkReduxStore reducer .map-base) = proj₁
+mkReduxStore reducer .map-fiber (state , tt) = reducer state
 
 data Action : Set where
   Increment : Action
@@ -44,7 +44,7 @@ Component : Set → Set → Set
 Component S A = monomial S S ⇒ monomial S A
 
 renderₚ : S → Component S A → A
-renderₚ s component = map-args {!!} s {!!}
+renderₚ s component = map-fiber {!!} s {!!}
 
 render : Store S A → A
 render component = peek (pos component) component
