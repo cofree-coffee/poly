@@ -30,6 +30,26 @@ _+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
 (p⇒q +⇒ r⇒z) .map-fiber (inj₁ ptag) = map-fiber p⇒q ptag
 (p⇒q +⇒ r⇒z) .map-fiber (inj₂ rtag) = map-fiber r⇒z rtag
 
++-unit : ∀{p : Poly} → 𝟘 ⇒ p
++-unit .map-base ()
++-unit .map-fiber () _
+
++-unitality-r : ∀{p : Poly} → p + 𝟘 ⇒ p
++-unitality-r .map-base (inj₁ pbase) = pbase
++-unitality-r .map-fiber (inj₁ x) pfib = pfib
+
++-unital-l : ∀{p : Poly} → 𝟘 + p ⇒ p
++-unital-l .map-base (inj₂ pbase) = pbase
++-unital-l .map-fiber (inj₂ x) pfib = pfib
+
++-unital-r-bwd : ∀{p : Poly} → p ⇒ p + 𝟘
++-unital-r-bwd .map-base pbase = inj₁ pbase
++-unital-r-bwd .map-fiber pbase pfib = pfib
+
++-unital-l-bwd : ∀{p : Poly} → p ⇒ 𝟘 + p
++-unital-l-bwd .map-base pbase = inj₂ pbase
++-unital-l-bwd .map-fiber pbase pfib = pfib
+
 mergeₚ : ∀{P : Poly} → P + P ⇒ P
 mergeₚ .map-base (inj₁ ptag) = ptag
 mergeₚ .map-base (inj₂ ptag) = ptag
@@ -38,13 +58,11 @@ mergeₚ .map-fiber (inj₂ ptag) pargs = pargs
 
 -- | Co-Product Left Inclusion
 leftₚ : ∀{P Q : Poly} → P ⇒ (P + Q) 
-leftₚ .map-tag = inj₁
-leftₚ .map-args tag = id
+leftₚ = +-unital-r-bwd ⨟ₚ idₚ +⇒ +-unit
 
 -- | Co-Product Right Inclusion
 rightₚ : ∀{P Q : Poly} → Q ⇒ (P + Q)
-rightₚ .map-tag = inj₂
-rightₚ .map-args tag = id
+rightₚ = +-unital-l-bwd ⨟ₚ +-unit +⇒ idₚ
 
 -- | Co-Product eliminator
 eitherₚ : ∀{P Q R : Poly} → P ⇒ R → Q ⇒ R → (P + Q) ⇒ R

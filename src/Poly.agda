@@ -111,6 +111,12 @@ monomial : Set → Set → Poly
 constant : Set → Poly
 constant S = monomial S ⊥
 
+𝟘 : Poly
+𝟘 = constant ⊥
+
+𝟙 : Poly
+𝟙 = constant ⊤
+
 -- | The variable X.
 --
 -- ⟦ 𝕐 ⟧ = id
