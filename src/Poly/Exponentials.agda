@@ -19,11 +19,11 @@ open _≃_
 -- | Adjoint to the cartesian product _×ₚ_.
 -- Denoted q^p in the book.
 _~>_ : Poly → Poly → Poly
-P ~> Q = Product (P .Base) λ ptag → Q ◁ (constant (P .Fiber ptag) + 𝐗)
+P ~> Q = Product (P .Base) λ ptag → Q ◁ (constant (P .Fiber ptag) + 𝕐)
 
 -- | Adjoint to the parallel product _⊗_.
 [_~>_] : Poly → Poly → Poly
-[ P ~> Q ] = Product (P .Base) λ ptag → Q ◁ (constant (P .Fiber ptag) ×ₚ 𝐗)
+[ P ~> Q ] = Product (P .Base) λ ptag → Q ◁ (constant (P .Fiber ptag) ×ₚ 𝕐)
 
 -- | Does the converse hold?
 ⟦⟧-~> : ∀{P Q : Poly} → ∀{a b} → exp {a = a} {b = b} ⟦ P ⟧ ⟦ Q ⟧ ↝ ⟦ P ~> Q ⟧ 

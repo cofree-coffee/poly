@@ -113,23 +113,23 @@ constant S = monomial S ⊥
 
 -- | The variable X.
 --
--- ⟦ 𝐗 ⟧ = id
-𝐗 : Poly
-𝐗 = monomial ⊤ ⊤
+-- ⟦ 𝕐 ⟧ = id
+𝕐 : Poly
+𝕐 = monomial ⊤ ⊤
 
 open _≃_
 
-⟦⟧-𝐗 : ⟦ 𝐗 ⟧ ≃ id
-⟦⟧-𝐗 .to (_ , f) = f tt
-⟦⟧-𝐗 .from x = tt , λ _ → x
+⟦⟧-𝕐 : ⟦ 𝕐 ⟧ ≃ id
+⟦⟧-𝕐 .to (_ , f) = f tt
+⟦⟧-𝕐 .from x = tt , λ _ → x
 
 -- | Power.
-𝐗^_ : Set → Poly
-𝐗^_ = monomial ⊤
+𝕐^_ : Set → Poly
+𝕐^_ = monomial ⊤
 
-⟦⟧-𝐗^ : ∀{ T : Set} → ⟦ 𝐗^ T ⟧ ≃ Morphism T
-⟦⟧-𝐗^ .to (_ , f) = f
-⟦⟧-𝐗^ .from = tt ,_
+⟦⟧-𝕐^ : ∀{ T : Set} → ⟦ 𝕐^ T ⟧ ≃ Morphism T
+⟦⟧-𝕐^ .to (_ , f) = f
+⟦⟧-𝕐^ .from = tt ,_
 
 ⟦⟧-constant : ∀{S : Set} → ⟦ constant S ⟧ ≃ const S
 ⟦⟧-constant .to (s , _) = s
