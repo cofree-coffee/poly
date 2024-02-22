@@ -85,6 +85,46 @@ _◁_ : Poly → Poly → Poly
 ⟦⟧-◁ .to ((ptag , qtag) , f) = ptag , λ pargs → qtag pargs , λ qargs → f (pargs , qargs)
 ⟦⟧-◁ .from (ptag , f) = (ptag , λ pargs → proj₁ (f pargs)) , λ{ (pargs , qargs) → proj₂ (f pargs) qargs }
 
+id-◁-intro : (P : Poly) → P ⇒ 𝕐 ◁ P
+id-◁-intro _ .map-base p = tt , λ _ → p
+id-◁-intro _ .map-fiber p (_ , a) = a
+
+◁-id-intro : (P : Poly) → P ⇒ P ◁ 𝕐
+◁-id-intro _ .map-base p = p , (λ _ → tt)
+◁-id-intro _ .map-fiber p (a , _) = a
+
+◁-id-elim : (P : Poly) → P ◁ 𝕐 ⇒ P
+◁-id-elim _ .map-base (p , _) = p
+◁-id-elim _ .map-fiber (p , _) a = a , tt
+
+id-◁-elim : (P : Poly) → 𝕐 ◁ P  ⇒ P
+id-◁-elim _ .map-base (_ , p) = p tt
+id-◁-elim _ .map-fiber (_ , p) a = tt , a
+
+x² : {X : Set} → Poly
+x² {X} = monomial (Fin 1) (X × X)
+
+x²' : {X : Set} → Poly
+Base x²' = Fin 1
+Fiber (x²' {X}) = λ _ → X × X
+
+_ : {X : Set} → x² {X = X} ≡ x²' {X = X}
+_ = refl
+
+x³ : {X : Set} → Poly
+x³ {X} = monomial (Fin 1) (X × X × X)
+
+x²◁x³ : {X : Set} → Poly
+x²◁x³ {X} = x² {X} ◁ x³ {X}
+
+x²◁x³' : {X : Set} → Poly
+Base (x²◁x³' {X}) = Σ[ x²-base ∈ Fin 1 ] (X × X → Fin 1)
+Fiber (x²◁x³' {X}) = λ where
+  (x²-base , f) → Σ[ x²-fib ∈ X × X ] (X × X × X)
+
+_ : {X : Set} → x²◁x³ {X} ≡ x²◁x³' {X}
+_ = refl
+
 --------------------------------------------------------------------------------
 
 -- | P × Q
