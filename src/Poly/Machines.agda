@@ -334,3 +334,77 @@ const-1+repeater = const-1 &&& repeater
 -- const-1+repeater .map-fiber n (inj₂ zero) = n
 
 run-const-1+repeater = process-moore' 0 (inj₁ 1 ∷ inj₂ zero ∷ inj₂ zero ∷ inj₁ 3 ∷ inj₂ zero ∷ []) const-1+repeater'
+
+--------------------------------------------------------------------------------
+-- Logic Gates
+
+Gate : Set → Set → Set
+Gate I O = Moore O I O
+
+-- | NAND
+--
+-- +----------------+
+-- | A | B | Output |
+-- |-------+--------|
+-- | 0 | 0 | 1      |
+-- | 0 | 1 | 1      |
+-- | 1 | 0 | 1      |
+-- | 1 | 1 | 0      |
+-- +----------------+
+nandₚ : Gate (Fin 2 × Fin 2) (Fin 2)
+nandₚ = mds λ where 
+  (zero , zero) → suc zero
+  (zero , suc zero) → suc zero
+  (suc zero , zero) → suc zero
+  (suc zero , suc zero) → zero
+
+-- | NOT
+--
+-- +----------------+
+-- | Input | Output |
+-- |-------+--------|
+-- | 1     | 0      |
+-- | 0     | 1      |
+-- +----------------+
+not-wire : monomial (Fin 2) (Fin 2 × Fin 2) ⇒ monomial (Fin 2) (Fin 2)
+not-wire .map-base s = s
+not-wire .map-fiber s x = x , x
+
+notₚ : Gate (Fin 2) (Fin 2)
+notₚ = lmap-⇒ nandₚ not-wire
+
+-- | AND
+--
+-- +----------------+
+-- | A | B | Output |
+-- |-------+--------|
+-- | 0 | 0 | 0      |
+-- | 0 | 1 | 0      |
+-- | 1 | 0 | 0      |
+-- | 1 | 1 | 1      |
+-- +----------------+
+and-wire : monomial (Fin 2) (Fin 2 × Fin 2) ⊗ monomial (Fin 2) (Fin 2 × Fin 2) ⇒ monomial (Fin 2) (Fin 2 × Fin 2)
+and-wire .map-base (_ , snd) = snd
+and-wire .map-fiber (fst , _) (in-fst , in-snd) = (in-fst , in-snd) , (fst , fst)
+
+andₚ : Moore (Fin 2 × Fin 2) (Fin 2 × Fin 2) (Fin 2)
+andₚ = lmap-⇒ (nandₚ ⊗⇒ nandₚ) and-wire
+
+run = step-moore (suc zero , suc zero) ((zero , zero)) andₚ
+
+-- | XOR
+--
+-- +----------------+
+-- | A | B | Output |
+-- |-------+--------|
+-- | 0 | 0 | 0      |
+-- | 0 | 1 | 1      |
+-- | 1 | 0 | 1      |
+-- | 1 | 1 | 0      |
+-- +----------------+
+xorₚ : Gate (Fin 2 × Fin 2) (Fin 2)
+xorₚ = mds λ where
+  (zero , zero) → zero
+  (zero , suc zero) → suc zero
+  (suc zero , zero) → suc zero
+  (suc zero , suc zero) → zero
