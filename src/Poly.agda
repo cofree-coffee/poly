@@ -4,7 +4,6 @@ module Poly where
 --------------------------------------------------------------------------------
 
 open import Data.Empty using (⊥)
-open import Data.Fin hiding (_+_)
 open import Data.Product using (_×_; _,_; Σ-syntax; proj₁; proj₂)
 open import Data.Unit using (⊤ ; tt)
 open import Function using (_∘_; Morphism; const; id)
@@ -39,66 +38,12 @@ record Poly : Set where
 
 open Poly public
 
---------------------------------------------------------------------------------
-
 -- | Interpretation of a Poly as a functor @Set → Set@
 ⟦_⟧ : ∀ {a b} → Poly → (Set a → Set b)
 ⟦ P ⟧ X = Σ[ tag ∈ P .Base ] (P .Fiber tag → X)
 
 mapₚ : ∀{P : Poly} → ∀{A B : Set} → (A → B) → ⟦ P ⟧ A → ⟦ P ⟧ B
 mapₚ f (tag , args) = tag , λ x → f (args x)
-
---------------------------------------------------------------------------------
--- Examples
-
--- | Building a monomial.
---
--- m y ≡ y³ 
---
--- m y ≡ Σ[ i ∈ Fin 1 ] ((i → Set) → y)  
-m : Poly
-m .Base = Fin 1
-m .Fiber = λ where
-  zero → Fin 3
-
--- | Building a Polynomial.
---
--- data P x = Foo x x x | Bar x x | Baz x | Qux
--- 
--- P y ≡ y³ + y² + y + 1
--- 
--- P y ≡ Σ [ i ∈ Fin 4 ] y^aᵢ 
---   where
---     a : Fin 4 → Set
--- 
--- y^(aᵢ) ≡ a i → y
-p : Poly
-p .Base = Fin 4
-p .Fiber  = λ where
-  zero →  Fin 2
-  (suc zero) → Fin 1
-  (suc (suc zero)) →  Fin 1
-  (suc (suc (suc zero))) → Fin 0
-
--- | P y ≡ Σ [ i ∈ Fin 4 ] y^aᵢ 
-_ : ∀ {Y : Set} → (⟦ p ⟧ Y) ≡ (Σ[ i ∈ Fin 4 ] (p .Fiber i → Y))
-_ = refl
-
--- | Adding coefficients to a polynomial.
---
--- data Q y = Foo y y y | Bar y y | Baz Bool y | Qux
--- 
--- Q y ≡ y³ + y² + (2 · y) + y⁰
--- 
--- Q y ≡ Σ[ i ∈ Fin 5 ] y^aᵢ
-q : Poly
-q .Base  = Fin 5
-q .Fiber = λ where
-  zero →  Fin 3
-  (suc zero) → Fin 2
-  (suc (suc zero)) → Fin 1
-  (suc (suc (suc zero))) → Fin 1
-  (suc (suc (suc (suc zero)))) → Fin 0
 
 --------------------------------------------------------------------------------
 
@@ -117,7 +62,7 @@ constant S = monomial S ⊥
 𝟙 : Poly
 𝟙 = constant ⊤
 
--- | The variable X.
+-- | The variable Y.
 --
 -- ⟦ 𝕐 ⟧ = id
 𝕐 : Poly
@@ -156,23 +101,26 @@ record _⇒_ (P Q : Poly) : Set where
 
 open _⇒_ public
 
--- | Transform a map between polynomials into a natural
--- | transformation (a polymorphic function).
-_⟨$⟩_ : ∀{P Q : Poly} → P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
-p⇒q ⟨$⟩ (tag , args) = map-base p⇒q tag , λ qargs → args (map-fiber p⇒q tag qargs)
-
 idₚ : ∀{P : Poly} → P ⇒ P
 idₚ .map-base tag = tag
 idₚ .map-fiber tag args = args
-
--- | higher order identity
-inert : ∀{A B : Set} → ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
-inert (tt , f) a = f tt a
 
 infixr 4 _⨟ₚ_
 _⨟ₚ_ : ∀{P Q R : Poly} → P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ⨟ₚ q⇒r) .map-base = q⇒r .map-base ∘ p⇒q .map-base
 (p⇒q ⨟ₚ q⇒r) .map-fiber ptag rargs = p⇒q .map-fiber ptag (map-fiber q⇒r (map-base p⇒q ptag) rargs)
+
+ηₚ : ∀ {X : Set} → ∀{P Q : Poly} → P ⇒ Q → ⟦ P ⟧ X → ⟦ Q ⟧ X
+ηₚ {X} {P} {Q} f (pbase , pfiber) = f .map-base pbase , λ x → pfiber (f .map-fiber pbase x)
+
+-- | Transform a map between polynomials into a natural
+-- | transformation (a polymorphic function).
+_⟨$⟩_ : ∀{P Q : Poly} → P ⇒ Q → ⟦ P ⟧ ↝ ⟦ Q ⟧
+p⇒q ⟨$⟩ (tag , args) = map-base p⇒q tag , λ qargs → args (map-fiber p⇒q tag qargs)
+
+-- | higher order identity
+inert : ∀{A B : Set} → ⟦ monomial ⊤ ⊤ ⟧ (A → B) → A → B
+inert (tt , f) a = f tt a
 
 polymap : ∀{P Q : Poly} → ⟦ P ⟧ ↝ ⟦ Q ⟧ → P ⇒ Q
 polymap f .map-base ptag = proj₁ (f (ptag , id))
@@ -180,4 +128,3 @@ polymap f .map-fiber ptag qargs = proj₂ (f (ptag , id)) qargs
 
 ⟦⟧-monomial : ∀{S T : Set} → ⟦ monomial S T ⟧ ≡ const S ×₁ Morphism T
 ⟦⟧-monomial = refl
-
