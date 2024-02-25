@@ -7,6 +7,7 @@ open import Data.Fin using (Fin; suc; zero; toℕ; inject₁; splitAt)
 import Data.List as Agda
 open Agda using (_∷_; [])
 import Data.Maybe as Agda
+open import Function using (_∘_)
 open import Data.Empty
 open import Data.Nat using (ℕ; _+_; suc; zero; _⊔_)
 open import Data.Product using (_,_; Σ-syntax)
@@ -16,7 +17,7 @@ open import Poly
 open import Poly.Monoid
 open import Poly.Monoidal.Compose
 open import Poly.Monoidal.Coproduct hiding (_+_)
-open import Poly.Monoidal.Product
+open import Poly.Monoidal.Product hiding (×-monoid)
 open import Poly.Monoidal.Or
 open import Poly.Types.Maybe
 
@@ -106,11 +107,28 @@ map-fiber (ε ×-monoid) tt ()
 map-base (_⋆_ ×-monoid) (n , m) = n + m
 map-fiber (_⋆_ ×-monoid) (n , m) x = splitAt n x
 
+sum : (n : ℕ) → (Fin n → ℕ) → ℕ
+sum zero k = 0
+sum (suc n) k = k zero + sum n (k ∘ suc)
+
 Σ-map : ∀ {A A' : Set} {P : A → Set} {Q : A' → Set}
   → (f : A → A')
   → (g : ∀ {a} → P a → Q (f a))
   → Σ[ a ∈ A ] (P a) → Σ[ a' ∈ A' ] (Q a')
 Σ-map f g (x , y) = f x , g y
+
+split-sum : ∀ (n : ℕ) → (k : Fin n → ℕ) → (i : Fin (sum n k)) → Σ[ j ∈ Fin n ] (Fin (k j))
+split-sum (suc n) k i with splitAt (k zero) i 
+... | inj₁ i = zero , i
+... | inj₂ i = Σ-map suc (λ i → i) (split-sum n (k ∘ suc) i)
+
+-- | The listₚ Monad
+◁-monoid : ProposedMonoid (_◁_) 𝕐
+P ◁-monoid = listₚ
+map-base (ε ◁-monoid) tt = zero
+map-fiber (ε ◁-monoid) tt ()
+map-base (_⋆_ ◁-monoid) (n , f) = sum n f
+map-fiber (_⋆_ ◁-monoid) (n , f) m = split-sum n f m
 
 vcons : ∀ {A : Set} {n : ℕ} → A → (Fin n → A) → (Fin (suc n) → A)
 vcons x xs zero = x
