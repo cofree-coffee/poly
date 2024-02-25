@@ -3,10 +3,12 @@ module Poly.Monoidal.Product where
 
 --------------------------------------------------------------------------------
 
+open import Data.Unit
 open import Data.Product using (_×_; _,_; ∃-syntax; Σ-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; [_,_]; inj₁; inj₂)
 open import Function using (_∘_)
 open import Poly
+open import Poly.Comonoid
 open import Poly.SetFunctor
 
 open _≃_
@@ -28,20 +30,13 @@ _×ₚ⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ×ₚ R ⇒ Q ×�
 (p⇒q ×ₚ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₁ qargs) = inj₁ (map-fiber p⇒q ptag qargs)
 (p⇒q ×ₚ⇒ r⇒z) .map-fiber (ptag , rtag) (inj₂ zargs) = inj₂ (map-fiber r⇒z rtag zargs)
 
--- ×ₚ-unit : ∀{P : Poly} → 𝟙 ⇒ P
--- ×ₚ-unit {P} .map-base = λ x → {!!}
--- ×ₚ-unit {P} .map-fiber tt x = {!!}
-
--- ×ₚ-merge : ∀{P : Poly} → P ×ₚ P ⇒ P
--- ×ₚ-merge .map-base (pbase₁ , pbase₂) = pbase₁
--- ×ₚ-merge .map-fiber (pbase₁ , pbase₂) pfib = inj₁ pfib
-
--- ×ₚ-monoid : ProposedMonoid (_×ₚ_) 𝟙
--- ×ₚ-monoid =
---   record
---     { e = ×ₚ-unit
---     ; _⋆_ = ×ₚ-merge
---     }
+×-monoid : ∀{P : Poly} → ProposedComonoid (_×ₚ_) 𝟙
+ProposedComonoid.P (×-monoid {P}) = P
+map-base (ProposedComonoid.e ×-monoid) p-base = tt
+map-fiber (ProposedComonoid.e ×-monoid) tag ()
+map-base (ProposedComonoid._⋆_ ×-monoid) p-base = p-base , p-base
+map-fiber (ProposedComonoid._⋆_ ×-monoid) tag (inj₁ p-fib) = p-fib
+map-fiber (ProposedComonoid._⋆_ ×-monoid) tag (inj₂ p-fib) = p-fib
 
 -- | _×ₚ_ fst eliminator
 ×ₚ-fst : ∀{P Q : Poly} → (P ×ₚ Q) ⇒ P

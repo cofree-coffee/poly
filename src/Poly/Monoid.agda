@@ -12,5 +12,7 @@ open import Poly
 record ProposedMonoid (_⊙_ : Poly → Poly → Poly) (I : Poly) : Set where
   field
     P : Poly
-    e : I ⇒ P 
+    ε : I ⇒ P 
     _⋆_ : P ⊙ P ⇒ P
+
+open ProposedMonoid public

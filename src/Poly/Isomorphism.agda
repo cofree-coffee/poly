@@ -13,3 +13,5 @@ record ProposedIso (P Q : Poly) : Set where
   field
     fwd : P ⇒ Q
     bwd : Q ⇒ P
+
+open ProposedIso public

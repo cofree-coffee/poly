@@ -31,7 +31,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 --
 -- I is thus @P .Base@ and @aᵢ@ is @P .Fiber i@.
 record Poly : Set where
-  constructor poly
+  no-eta-equality
   field
     Base : Set
     Fiber : Base → Set
@@ -94,7 +94,7 @@ f $' x = f x
 -- | A map between two Polynomials
 infixr 0 _⇒_
 record _⇒_ (P Q : Poly) : Set where
-  constructor poly-map
+  no-eta-equality
   field
     map-base : P .Base → Q .Base 
     map-fiber : (tag : P .Base ) → Q .Fiber (map-base tag) → P .Fiber tag

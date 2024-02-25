@@ -14,3 +14,4 @@ record ProposedComonoid (_⊙_ : Poly → Poly → Poly) (I : Poly) : Set where
     P : Poly
     e : P ⇒ I 
     _⋆_ : P ⇒ P ⊙ P
+

@@ -1,10 +1,16 @@
-{-# OPTIONS --type-in-type #-}
 module Poly.Types.Store where
 
 --------------------------------------------------------------------------------
 
-open import Data.Product using (_,_)
+open import Data.Unit
+open import Poly.Monoidal.Compose
+open import Data.Product using (_,_; proj₁; proj₂)
+open import Poly.Comonoid
 open import Poly
+
+open ProposedComonoid
+
+open import Data.Nat
 
 --------------------------------------------------------------------------------
 
@@ -33,3 +39,11 @@ seeks f (here , view) = (f here , view)
 -- NOTE: I don't have a Functor definition handy.
 experiment : ∀{S A : Set} → ∀{F : Set → Set} → (∀{X Y : Set} → (X → Y) → F X → F Y) → (S → F S) → Store S A → F A
 experiment map f st = map (λ s → peek s st) (f (pos st))
+
+store-p-comonoid : ∀{S : Set} → ProposedComonoid (_◁_) 𝕐
+store-p-comonoid {S} .P = (store S)
+map-base (store-p-comonoid .e) base = tt
+map-fiber (store-p-comonoid .e) base tt = base
+proj₁ (map-base (_⋆_ store-p-comonoid) base) = base
+proj₂ (map-base (_⋆_ store-p-comonoid) base) fiber = fiber
+map-fiber (_⋆_ store-p-comonoid) base (fib-base , fib-fib-base) = fib-fib-base

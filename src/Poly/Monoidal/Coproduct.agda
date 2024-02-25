@@ -5,7 +5,9 @@ module Poly.Monoidal.Coproduct where
 
 open import Data.Product using (_,_; ∃-syntax)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Unit
 open import Poly
+open import Poly.Comonoid
 open import Poly.Monoid
 open import Poly.Isomorphism
 open import Poly.SetFunctor
@@ -31,61 +33,42 @@ _+⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P + R ⇒ Q + Z
 (p⇒q +⇒ r⇒z) .map-fiber (inj₁ ptag) = map-fiber p⇒q ptag
 (p⇒q +⇒ r⇒z) .map-fiber (inj₂ rtag) = map-fiber r⇒z rtag
 
-+-unit : ∀{p : Poly} → 𝟘 ⇒ p
-+-unit .map-base ()
-+-unit .map-fiber () _
++-split-l : ∀{P : Poly} → P ⇒ P + P
+map-base +-split-l p-base = inj₁ p-base
+map-fiber +-split-l p-base p-fib = p-fib
 
-+-merge : ∀{P : Poly} → P + P ⇒ P
-+-merge .map-base (inj₁ ptag) = ptag
-+-merge .map-base (inj₂ ptag) = ptag
-+-merge .map-fiber (inj₁ ptag) pargs = pargs
-+-merge .map-fiber (inj₂ ptag) pargs = pargs
++-split-r : ∀{P : Poly} → P ⇒ P + P
+map-base +-split-r p-base = inj₂ p-base
+map-fiber +-split-r p-base p-fib = p-fib
 
 +-monoid : ∀{P : Poly} → ProposedMonoid (_+_) 𝟘
-+-monoid {P} =
-  record
-    { P = P
-    ; e = +-unit
-    ; _⋆_ = +-merge
-    }
-
-+-unital-r-fwd : ∀{P : Poly} → P + 𝟘 ⇒ P
-+-unital-r-fwd .map-base (inj₁ pbase) = pbase
-+-unital-r-fwd .map-fiber (inj₁ x) pfib = pfib
-
-+-unital-r-bwd : ∀{P : Poly} → P ⇒ P + 𝟘
-+-unital-r-bwd .map-base pbase = inj₁ pbase
-+-unital-r-bwd .map-fiber pbase pfib = pfib
+ProposedMonoid.P (+-monoid {P}) = P
+map-base (ε (+-monoid {P})) ()
+map-fiber (ε (+-monoid {P})) () _
+map-base (_⋆_ (+-monoid {P})) (inj₁ p-base) = p-base
+map-base (_⋆_ (+-monoid {P})) (inj₂ p-base) = p-base
+map-fiber (_⋆_ (+-monoid {P})) (inj₁ p-base) p-fib = p-fib
+map-fiber (_⋆_ (+-monoid {P})) (inj₂ p-base) p-fib = p-fib
 
 +-unital-r : ∀{P : Poly} → ProposedIso (P + 𝟘) P
-+-unital-r =
-  record
-    { fwd = +-unital-r-fwd
-    ; bwd = +-unital-r-bwd
-    }
-
-+-unital-l-fwd : ∀{p : Poly} → 𝟘 + p ⇒ p
-+-unital-l-fwd .map-base (inj₂ pbase) = pbase
-+-unital-l-fwd .map-fiber (inj₂ x) pfib = pfib
-
-+-unital-l-bwd : ∀{p : Poly} → p ⇒ 𝟘 + p
-+-unital-l-bwd .map-base pbase = inj₂ pbase
-+-unital-l-bwd .map-fiber pbase pfib = pfib
+map-base (fwd +-unital-r) (inj₁ p-base) = p-base
+map-fiber (fwd +-unital-r) (inj₁ p-base) p-fib = p-fib
+map-base (bwd +-unital-r) p-base = inj₁ p-base
+map-fiber (bwd +-unital-r) p-base p-fib = p-fib
 
 +-unital-l : ∀{P : Poly} → ProposedIso (𝟘 + P) P
-+-unital-l =
-  record
-    { fwd = +-unital-l-fwd
-    ; bwd = +-unital-l-bwd
-    }
+map-base (fwd +-unital-l) (inj₂ p-base) = p-base
+map-fiber (fwd +-unital-l) (inj₂ p-base) p-fib = p-fib
+map-base (bwd +-unital-l) p-base = inj₂ p-base
+map-fiber (bwd +-unital-l) p-base p-fib = p-fib
 
 -- | Co-Product Left Inclusion
 leftₚ : ∀{P Q : Poly} → P ⇒ (P + Q) 
-leftₚ = +-unital-r .bwd ⨟ₚ idₚ +⇒ +-unit
+leftₚ = +-unital-r .bwd ⨟ₚ idₚ +⇒ +-monoid .ε
 
 -- | Co-Product Right Inclusion
 rightₚ : ∀{P Q : Poly} → Q ⇒ (P + Q)
-rightₚ = +-unital-l .bwd ⨟ₚ +-unit +⇒ idₚ
+rightₚ = +-unital-l .bwd ⨟ₚ +-monoid .ε +⇒ idₚ
 
 -- | Co-Product eliminator
 eitherₚ : ∀{P Q R : Poly} → P ⇒ R → Q ⇒ R → (P + Q) ⇒ R
@@ -94,6 +77,7 @@ eitherₚ p⇒r q⇒r .map-base (inj₂ qtag) = q⇒r .map-base qtag
 eitherₚ p⇒r q⇒r .map-fiber (inj₁ tag) = p⇒r .map-fiber tag
 eitherₚ p⇒r q⇒r .map-fiber (inj₂ tag) = q⇒r .map-fiber tag
 
+-- | Index sums
 Sum : (I : Set) → (I → Poly) → Poly
 Sum I P .Base = ∃[ i ] P i .Base
 Sum I P .Fiber (i , ptag) = P i .Fiber ptag

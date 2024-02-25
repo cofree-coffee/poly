@@ -10,7 +10,10 @@ open import Function using (case_of_)
 open import Level using (lift)
 open import Poly
 open import Poly.SetFunctor
-open import Poly.Monoidal
+open import Poly.Monoidal.Compose
+open import Poly.Monoidal.Coproduct
+open import Poly.Monoidal.Product
+open import Poly.Monoidal.Tensor
 
 open _≃_
 
