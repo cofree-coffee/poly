@@ -13,9 +13,9 @@ open import Data.Nat using (_⊔_; ℕ; zero)
 import Data.Nat as ℕ
 open import Poly
 open import Poly.Lens
-open import Poly.Machines
-open import Poly.Monoidal
-open import Poly.Profunctor
+open import Poly.Machines.Examples
+open import Poly.Machines.Moore
+open import Poly.Monoidal.Tensor
 open import Poly.SetFunctor
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
 
@@ -89,11 +89,12 @@ fib-wire : ∀{A : Set} → monomial A (A × A) ⊗ monomial A A ⇒ monomial A 
 fib-wire .map-base (A , B) = B
 fib-wire .map-fiber (A , B) zero = (A , B) , A
 
+-- TODO: Broken due to `no-eta-equality` on Poly
 -- | The parallel composition of 'sum' and 'delay'
 delay⊗⇒sum : monomial (ℕ × ℕ) (ℕ × ℕ) ⇒ monomial ℕ (ℕ × ℕ) ⊗ monomial ℕ ℕ
 delay⊗⇒sum = sum ⊗⇒ delay
 
 fib-machine : Moore (ℕ × ℕ) (Fin 1) ℕ
-fib-machine = lmap-⇒ delay⊗⇒sum fib-wire
+fib-machine = delay⊗⇒sum ⨟ₚ fib-wire
 
 run-fib = process-moore' (1 , 1) (zero ∷ zero ∷ zero ∷ zero ∷ zero ∷ zero ∷ zero ∷ []) fib-machine

@@ -34,6 +34,16 @@ _⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
 ⊗-swap .map-base (ptag , qtag) = qtag , ptag
 ⊗-swap .map-fiber tag (qargs , pargs) = pargs , qargs
 
+⊗-first : ∀{P Q R : Poly} → P ⇒ R → P ⊗ Q ⇒ R ⊗ Q
+map-base (⊗-first p⇒r) (base-p , base-q) = (p⇒r .map-base base-p) , base-q
+map-fiber (⊗-first p⇒r) (base-p , base-q) (fib-r , fib-q) = p⇒r .map-fiber base-p fib-r , fib-q
+
+-- second' : ∀{P Q R : Poly} → (_⊙_ : Poly → Poly → Poly) → Q ⇒ R → P ⊙ Q ⇒ P ⊙ R
+-- second' _⊙_ q⇒r = ⊗-swap ⨟ₚ ⊗-first q⇒r ⨟ₚ ⊗-swap
+
+⊗-second : ∀{P Q R : Poly} → Q ⇒ R → P ⊗ Q ⇒ P ⊗ R
+⊗-second q⇒r = ⊗-swap ⨟ₚ ⊗-first q⇒r ⨟ₚ ⊗-swap
+
 ⊗-split-l : ∀{P : Poly} → P ⇒ P ⊗ P
 ⊗-split-l .map-base ptag =  ptag , ptag
 ⊗-split-l .map-fiber ptag (f , g) = f

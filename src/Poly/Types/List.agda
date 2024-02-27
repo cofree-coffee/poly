@@ -144,6 +144,6 @@ l1 = list (zero ∷ 1 ∷ 2 ∷ [])
 l2 : ⟦ listₚ ⟧ ℕ
 l2 = list (2 ∷ [])
 
-alignₚ : ∀{ Γ : Poly } → Γ ⇒ listₚ → Γ ⇒ listₚ → Γ ⇒ (listₚ ◁ ({!!} ∨ {!!}))
-alignₚ = {!!}
+-- alignₚ : ∀{ Γ : Poly } → Γ ⇒ listₚ → Γ ⇒ listₚ → Γ ⇒ (listₚ ◁ ({!!} ∨ {!!}))
+-- alignₚ = {!!}
 

@@ -105,6 +105,11 @@ idₚ : ∀{P : Poly} → P ⇒ P
 idₚ .map-base tag = tag
 idₚ .map-fiber tag args = args
 
+infixr 4 _∘ₚ_
+_∘ₚ_ : ∀{P Q R : Poly} → Q ⇒ R → P ⇒ Q → P ⇒ R
+(q⇒r ∘ₚ p⇒q) .map-base = q⇒r .map-base ∘ p⇒q .map-base
+(q⇒r ∘ₚ p⇒q) .map-fiber ptag rargs = p⇒q .map-fiber ptag (map-fiber q⇒r (map-base p⇒q ptag) rargs)
+
 infixr 4 _⨟ₚ_
 _⨟ₚ_ : ∀{P Q R : Poly} → P ⇒ Q → Q ⇒ R → P ⇒ R
 (p⇒q ⨟ₚ q⇒r) .map-base = q⇒r .map-base ∘ p⇒q .map-base

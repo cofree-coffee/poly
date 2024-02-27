@@ -77,6 +77,18 @@ eitherₚ p⇒r q⇒r .map-base (inj₂ qtag) = q⇒r .map-base qtag
 eitherₚ p⇒r q⇒r .map-fiber (inj₁ tag) = p⇒r .map-fiber tag
 eitherₚ p⇒r q⇒r .map-fiber (inj₂ tag) = q⇒r .map-fiber tag
 
++-left : ∀{P Q R : Poly} → P ⇒ Q → (P + R) ⇒ (Q + R)
++-left p⇒q .map-base (inj₁ ptag) = inj₁ (map-base p⇒q ptag)
++-left p⇒q .map-base (inj₂ rtag) = inj₂ rtag
++-left p⇒q .map-fiber (inj₁ ptag) args = map-fiber p⇒q ptag args
++-left p⇒q .map-fiber (inj₂ rtag) args = args
+
+right : ∀{P Q R : Poly} → P ⇒ Q → (R + P) ⇒ (R + Q)
+right p⇒q .map-base (inj₁ rtag) = inj₁ rtag
+right p⇒q .map-base (inj₂ ptag) = inj₂ (map-base p⇒q ptag)
+right p⇒q .map-fiber (inj₁ rtag) args = args
+right p⇒q .map-fiber (inj₂ ptag) args = map-fiber p⇒q ptag args
+
 -- | Index sums
 Sum : (I : Set) → (I → Poly) → Poly
 Sum I P .Base = ∃[ i ] P i .Base

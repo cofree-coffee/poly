@@ -1,117 +1,25 @@
-{-# OPTIONS --type-in-type #-}
-module Poly.Machines where
+module Poly.Machines.Examples where
 
 --------------------------------------------------------------------------------
 
 open import Data.Bool using (Bool; true; false)
-open import Function using (_∘_; id)
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Integer using (ℤ)
 import Data.Integer as ℤ
-open import Data.List hiding (sum)
 open import Data.Nat using (_⊔_; ℕ; zero)
-import Data.Nat as ℕ
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Unit using (⊤; tt)
+open import Data.List using (List; _∷_; [])
+open import Function using (_∘_; id)
 open import Poly
-open import Poly.Lens
-open import Poly.Monoidal
-open import Poly.Profunctor
+open import Poly.Machines.Mealy
+open import Poly.Machines.Moore
+open import Poly.Monoidal.Product
+open import Poly.Monoidal.Tensor
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq.≡-Reasoning
 open import Relation.Nullary
-
---------------------------------------------------------------------------------
-
--- | Moore Machine:
---
--- S × I → S
--- S → O
---
--- Sxˢ → Oxᴵ
-Moore : Set → Set → Set → Set
-Moore S I O = monomial S S ⇒ monomial O I
-
--- | We can build a 'Moore' from an output function and a transition
--- | function.
-moore : ∀{S I O : Set} → (S → O) → (S → I → S) → Moore S I O
-moore output transition .map-base = output
-moore output transition .map-fiber s = transition s
-
-Moore≡Lens : ∀{S I O : Set} → Moore S I O ≡ Lens S S O I
-Moore≡Lens = refl
-
--- | We can then recover the output and transition functions by
--- | eta-expanding around '.map-base' and '.map-fiber'.
-disassemble-moore : ∀{S I O : Set} → Moore S I O → (S → O) × (S → I → S)
-disassemble-moore m = (λ s → m .map-base s) , λ s i → m .map-fiber s i 
-
--- | Evaluate one step of a moore machine with a given input @i@ and
--- | state @s@.
-step-moore : ∀{S I O : Set} → I → S → Moore S I O → (O × S)
-step-moore i s bot = bot .map-base s , bot .map-fiber s i
-
--- | Turn the crank on a Moore Machine with a list of inputs @I@.
-process-moore' : ∀{S I O : Set} →  S → List I → Moore S I O → List O × S
-process-moore' s [] bot = [] , s
-process-moore' s (i ∷ is) bot =
-  let (o , s') = step-moore i s bot 
-      (os , s'') = process-moore' s' is bot
-  in o ∷ os , s''
-
--- | Turn the crank on a Moore machine then emit the final state and
--- | the output associated with it.
-process-moore : ∀{S I O : Set} →  S → List I → Moore S I O → O × S
-process-moore s i bot =
-  let (_ , s') = process-moore' s i bot
-  in (bot .map-base s') , s'
-
---------------------------------------------------------------------------------
-
--- | Mealy Machine:
--- 
--- S × I → S
--- S × I → O
---
--- | SI · xˢ → O · x¹
-Mealy : Set → Set → Set → Set
-Mealy S I O = monomial (S × I) S ⇒ monomial O ⊤
-
-mealy : ∀{S I O : Set} → (S × I → (S × O)) → Mealy S I O
-mealy f .map-base = proj₂ ∘ f
-mealy f .map-fiber tag = λ _ → (proj₁ ∘ f) tag
-
--- | Evaluate one step of a Mealy Machine with a given input @I@ and
--- | state @S@.
-step-mealy : ∀{S I O : Set} →  I → S → Mealy S I O → (O × S)
-step-mealy i s bot = bot .map-base ( s , i) , bot .map-fiber (s , i) tt
-
--- | Turn the crank on a Mealy Machine with a list of inputs @I@.
-process-mealy : ∀{S I O : Set} →  S → List I → Mealy S I O → List O × S
-process-mealy s [] bot = [] , s 
-process-mealy s (i ∷ is) bot =
-  let
-    (o , s') = step-mealy i s bot
-    (os , s'') = process-mealy s' is bot
-  in  o ∷ os , s''
-
---------------------------------------------------------------------------------
--- Machine Composition
-
-moore-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
-moore-×  m n = m ⊗⇒ n
-
-mealy-+ : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ ⊎ I₂) (O₁ ⊎ O₂)
-mealy-+ m n .map-base ((s₁ , s₂) , inj₁ i₁) = inj₁ (map-base m (s₁ , i₁))
-mealy-+ m n .map-base ((s₁ , s₂) , inj₂ i₂) = inj₂ (map-base n (s₂ , i₂))
-mealy-+ m n .map-fiber ((s₁ , s₂) , inj₁ i₁) tt = (map-fiber m (s₁ , i₁) tt) , s₂ 
-mealy-+ m n .map-fiber ((s₁ , s₂) , inj₂ i₂) tt = s₁ , (map-fiber n (s₂ , i₂) tt)
-
-mealy-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Mealy S₁ I₁ O₁ → Mealy S₂ I₂ O₂ → Mealy (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
-mealy-× m n .map-base ((s₁ , s₂) , i₁ , i₂) = (map-base m (s₁ , i₁)) , (map-base n (s₂ , i₂))
-mealy-× m n .map-fiber ((s₁ , s₂) , i₁ , i₂) tt = (map-fiber m (s₁ , i₁) tt) , (map-fiber n (s₂ , i₂) tt)
 
 --------------------------------------------------------------------------------
 
@@ -231,15 +139,15 @@ turing-wire .map-base s = zero
 turing-wire .map-fiber (tape-output , inj₁ processor-output) zero = (inj₁ processor-output) , tape-output
 turing-wire .map-fiber (tape-output , inj₂ processr-output) zero = (inj₂ processr-output) , tape-output
 
-tape⊗⇒processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial (((ℤ → V) × ℤ) × S) (((ℤ → V) × ℤ) × S) ⇒ monomial  V (V ⊎ M) ⊗ monomial (V ⊎ M) V
-tape⊗⇒processor nextCommand updateState = tape ⊗⇒ processor nextCommand updateState
+-- tape⊗⇒processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial (((ℤ → V) × ℤ) × S) (((ℤ → V) × ℤ) × S) ⇒ monomial  V (V ⊎ M) ⊗ monomial (V ⊎ M) V
+-- tape⊗⇒processor nextCommand updateState = tape ⊗⇒ processor nextCommand updateState
 
-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore ((((ℤ → V) × ℤ) × S)) (Fin 1) (Fin 1)
-turing-machine {S} nextCommand updateState = lmap-⇒ (tape⊗⇒processor nextCommand updateState) (turing-wire {S = S})
+-- turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore ((((ℤ → V) × ℤ) × S)) (Fin 1) (Fin 1)
+-- turing-machine {S} nextCommand updateState = (tape⊗⇒processor nextCommand updateState) ⨟ₚ (turing-wire {S = S})
 
-run-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → (s : S) → List (Fin 1) × ((((ℤ → V) × ℤ) × S))
-run-turing-machine nextCommand updateState initialState =
-  process-moore' (((λ _ → blank) , ℤ.+0) , initialState) (zero ∷ zero ∷ []) (turing-machine nextCommand updateState)
+-- run-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → (s : S) → List (Fin 1) × ((((ℤ → V) × ℤ) × S))
+-- run-turing-machine nextCommand updateState initialState =
+--   process-moore' (((λ _ → blank) , ℤ.+0) , initialState) (zero ∷ zero ∷ []) (turing-machine nextCommand updateState)
 
 -- The 3-state busy beaver
 data State : Set where
@@ -371,7 +279,7 @@ not-wire .map-base s = s
 not-wire .map-fiber s x = x , x
 
 notₚ : Gate (Fin 2) (Fin 2)
-notₚ = lmap-⇒ nandₚ not-wire
+notₚ = nandₚ ⨟ₚ not-wire
 
 -- | AND
 --
@@ -387,10 +295,10 @@ and-wire : monomial (Fin 2) (Fin 2 × Fin 2) ⊗ monomial (Fin 2) (Fin 2 × Fin 
 and-wire .map-base (_ , snd) = snd
 and-wire .map-fiber (fst , _) (in-fst , in-snd) = (in-fst , in-snd) , (fst , fst)
 
-andₚ : Moore (Fin 2 × Fin 2) (Fin 2 × Fin 2) (Fin 2)
-andₚ = lmap-⇒ (nandₚ ⊗⇒ nandₚ) and-wire
+-- andₚ : Moore (Fin 2 × Fin 2) (Fin 2 × Fin 2) (Fin 2)
+-- andₚ = (nandₚ ⊗⇒ nandₚ) ⨟ₚ and-wire
 
-run = step-moore (suc zero , suc zero) ((zero , zero)) andₚ
+-- run = step-moore (suc zero , suc zero) ((zero , zero)) andₚ
 
 -- | XOR
 --
@@ -408,3 +316,4 @@ xorₚ = mds λ where
   (zero , suc zero) → suc zero
   (suc zero , zero) → suc zero
   (suc zero , suc zero) → zero
+

@@ -3,13 +3,14 @@ module Poly.Everything where
 
 import Poly.Exponentials
 import Poly.Lens
-import Poly.List
-import Poly.Machines
-import Poly.Map
-import Poly.Maybe
+import Poly.Machines.Moore
+import Poly.Machines.Mealy
+import Poly.Machines.Pairing
+import Poly.Machines.Examples
+import Poly.Types.List
+import Poly.Types.Vector
+import Poly.Types.Map
+import Poly.Types.Maybe
 import Poly.Monoidal
-import Poly.Profunctor
-import Poly.Proofs
 import Poly.Rep
 import Poly.SetFunctor
-import Poly.Vector

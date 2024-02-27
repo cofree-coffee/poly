@@ -7,7 +7,7 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (_,_; Σ-syntax)
 open import Poly
-open import Poly.Types.List
+open import Poly.Types.List hiding (vcons)
 open import Data.Bool
 --------------------------------------------------------------------------------
 
