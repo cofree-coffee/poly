@@ -130,24 +130,41 @@ tape .map-fiber (f , c) (inj₂ Right) = f , (ℤ.suc c)
 tape .map-fiber (f , c) (inj₁ in-v) = (λ n → decide n c f in-v) , c
 
 -- monomial S S ⇒ monomial (V ⊎ M) V
-processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore S V (V ⊎ M)
+processor
+  : ∀ {S : Set}
+  → (S → V ⊎ M)
+  → (S → V → S)
+  → Moore S V (V ⊎ M)
 processor nextCommand updateState .map-base = nextCommand
 processor nextCommand updateState .map-fiber = updateState
 
-turing-wire : ∀{S : Set} → monomial V (V ⊎ M) ⊗ monomial (V ⊎ M) V ⇒ monomial (Fin 1) (Fin 1) 
-turing-wire .map-base s = zero
-turing-wire .map-fiber (tape-output , inj₁ processor-output) zero = (inj₁ processor-output) , tape-output
-turing-wire .map-fiber (tape-output , inj₂ processr-output) zero = (inj₂ processr-output) , tape-output
+-- turing-wire : ∀{S : Set} → V y^ (V ⊎ M) ⊗ (V ⊎ M) y^ V ⇒ (Fin 1) y^ (Fin 1) 
+turing-wire
+  : ∀{S : Set}
+  → V y^ (V ⊎ M) ⊗ (V ⊎ M) y^ V ⇒ (Fin 1) y^ (Fin 1) 
+map-base turing-wire s = zero
+map-fiber turing-wire (tape-output , inj₁ processor-output) zero = (inj₁ processor-output) , tape-output
+map-fiber turing-wire (tape-output , inj₂ processr-output) zero = (inj₂ processr-output) , tape-output
 
--- tape⊗⇒processor : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → monomial (((ℤ → V) × ℤ) × S) (((ℤ → V) × ℤ) × S) ⇒ monomial  V (V ⊎ M) ⊗ monomial (V ⊎ M) V
--- tape⊗⇒processor nextCommand updateState = tape ⊗⇒ processor nextCommand updateState
+tape⊗⇒processor
+  : ∀ {S : Set}
+  → (S → V ⊎ M)
+  → (S → V → S)
+  → ((ℤ → V) × ℤ) y^ ((ℤ → V) × ℤ) ⊗ S y^ S ⇒ V y^ (V ⊎ M) ⊗ (V ⊎ M) y^ V
+tape⊗⇒processor nextCommand updateState =
+  tape ⊗⇒ processor nextCommand updateState
 
--- turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → Moore ((((ℤ → V) × ℤ) × S)) (Fin 1) (Fin 1)
--- turing-machine {S} nextCommand updateState = (tape⊗⇒processor nextCommand updateState) ⨟ₚ (turing-wire {S = S})
+turing-machine
+  : ∀ {S : Set}
+  → (S → V ⊎ M)
+  → (S → V → S)
+  → Moore ((((ℤ → V) × ℤ) × S)) (Fin 1) (Fin 1)
+turing-machine {S} nextCommand updateState =
+  uncompute-tensor ⨟ₚ tape⊗⇒processor nextCommand updateState ⨟ₚ turing-wire {S = S}
 
--- run-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → (s : S) → List (Fin 1) × ((((ℤ → V) × ℤ) × S))
--- run-turing-machine nextCommand updateState initialState =
---   process-moore' (((λ _ → blank) , ℤ.+0) , initialState) (zero ∷ zero ∷ []) (turing-machine nextCommand updateState)
+run-turing-machine : ∀{S : Set} → (S → V ⊎ M) → (S → V → S) → (s : S) → List (Fin 1) × ((((ℤ → V) × ℤ) × S))
+run-turing-machine nextCommand updateState initialState =
+  process-moore' (((λ _ → blank) , ℤ.+0) , initialState) (zero ∷ zero ∷ []) (turing-machine nextCommand updateState)
 
 -- The 3-state busy beaver
 data State : Set where
@@ -295,10 +312,10 @@ and-wire : monomial (Fin 2) (Fin 2 × Fin 2) ⊗ monomial (Fin 2) (Fin 2 × Fin 
 and-wire .map-base (_ , snd) = snd
 and-wire .map-fiber (fst , _) (in-fst , in-snd) = (in-fst , in-snd) , (fst , fst)
 
--- andₚ : Moore (Fin 2 × Fin 2) (Fin 2 × Fin 2) (Fin 2)
--- andₚ = (nandₚ ⊗⇒ nandₚ) ⨟ₚ and-wire
+andₚ : Moore (Fin 2 × Fin 2) (Fin 2 × Fin 2) (Fin 2)
+andₚ = uncompute-tensor ⨟ₚ nandₚ ⊗⇒ nandₚ ⨟ₚ and-wire
 
--- run = step-moore (suc zero , suc zero) ((zero , zero)) andₚ
+run = step-moore (suc zero , suc zero) ((zero , zero)) andₚ
 
 -- | XOR
 --

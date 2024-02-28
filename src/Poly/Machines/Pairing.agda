@@ -15,8 +15,6 @@ open import Poly.Monoidal.Coproduct
 open import Poly.Monoidal.Tensor
 
 --------------------------------------------------------------------------------
--- Mealy S I O = monomial (S × I) S ⇒ monomial O ⊤
--- Moore S I O = monomial S S ⇒ monomial O I
 
 drop-⊤-fiber
   : ∀ {S A : Set}
@@ -24,25 +22,13 @@ drop-⊤-fiber
 map-base drop-⊤-fiber = id
 map-fiber drop-⊤-fiber _ s = s , tt
 
-compute-tensor
-  : ∀ {S A X : Set}
-  → monomial S S ⊗ monomial A X ⇒ monomial (S × A) (S × X)
-map-base compute-tensor = id
-map-fiber compute-tensor = const id
-
--- Mealy is 
-curry-mealy
-  : ∀ {A B S : Set}
-  → Mealy S A B -- monomial (S × A) S ⇒ monomial B ⊤
-  → monomial S S ⇒ [ monomial A ⊤ , monomial B ⊤ ]
-curry-mealy f = ⊗-to-hom (compute-tensor ⨟ₚ drop-⊤-fiber ⨟ₚ f)
-
 pair-machines
   : ∀ {S T A B : Set}
   → Moore S A B -- monomial S S ⇒ monomial B A
   → Mealy T B A -- monomial (T × B) T ⇒ monomial A ⊤
   → monomial S S ⊗ monomial T T ⇒ monomial B A ⊗ [ monomial B ⊤ , monomial A ⊤ ]
-pair-machines {S} {T} {A} {B} moore mealy = moore ⊗⇒ curry-mealy mealy
+pair-machines {S} {T} {A} {B} moore mealy =
+  moore ⊗⇒ ⊗-to-hom (compute-tensor ⨟ₚ drop-⊤-fiber ⨟ₚ mealy)
 
 annihilate
   : ∀ {S T A B : Set}
@@ -52,31 +38,33 @@ annihilate
 annihilate moore mealy = pair-machines moore mealy ⨟ₚ ⊗-second hom-to-𝕐 ⨟ₚ eval
 
 trace-hom
-  : ∀ { A B : Set}
-  → [ monomial A ⊤ , monomial B ⊤ ] ⇒ [ monomial A B , monomial (A × B) (A × B) ]
-map-base trace-hom Ay⇒By = record { map-base = λ a → (a , Ay⇒By .map-base a) ; map-fiber = λ _ → proj₂ }
-map-fiber trace-hom Ay⇒By (a , a' , b) = a , tt
+  : ∀ { A B C : Set}
+  → (A × B → C)
+  → [ monomial A ⊤ , monomial B ⊤ ] ⇒ [ monomial A B , monomial C ⊤ ]
+map-base (trace-hom f) Ay⇒By = record { map-base = λ a → f (a , (Ay⇒By .map-base a)) ; map-fiber = λ a _ → Ay⇒By .map-base a }
+map-fiber (trace-hom _) Ay⇒By (a , tt) = a , tt
 
 witness
-  : ∀ {S T A B : Set}
+  : ∀ {S T A B C : Set}
+  → (B × A → C)
   → Moore S A B
   → Mealy T B A
-  → monomial S S ⊗ monomial T T ⇒ monomial (B × A) (B × A)
-witness moore mealy = pair-machines moore mealy ⨟ₚ ⊗-second trace-hom ⨟ₚ eval
+  → monomial S S ⊗ monomial T T ⇒ monomial C ⊤
+witness f moore mealy = pair-machines moore mealy ⨟ₚ ⊗-second (trace-hom f) ⨟ₚ eval
 
 counter : Moore ℕ ⊤ ℕ -- monomial ℕ ℕ ⇒ monomial B ⊤
 counter .map-base = id
-counter .map-fiber n tt =  ℕ.suc n
+counter .map-fiber n tt = ℕ.suc n
 
 factorial : Mealy ℕ ℕ ⊤
 map-base factorial (x , y) = tt
 map-fiber factorial (x , y) tt = x * y
 
-witnessed : monomial ℕ ℕ ⊗ monomial ℕ ℕ ⇒ monomial (ℕ × ⊤) (ℕ × ⊤)
-witnessed = witness counter factorial
+witnessed : ℕ y^ ℕ ⊗ ℕ y^ ℕ ⇒ (ℕ × ⊤) y^ ⊤
+witnessed = witness id counter factorial
 
 PairedMachine : Set → Set → Set → Set → Set
-PairedMachine S T A B = monomial S S ⊗ monomial T T ⇒ monomial (B × A) (B × A)
+PairedMachine S T A B = monomial S S ⊗ monomial T T ⇒ monomial (B × A) ⊤
 
 step-paired
   : ∀ { S T A B : Set}
@@ -88,9 +76,9 @@ step-paired {S} {T} {A} {B} state machine =
       observe : S × T → B × A
       observe = machine .map-base
 
-      transition : (tag : S × T) → B × A → S × T
+      transition : (S × T) → ⊤ → S × T
       transition = machine .map-fiber
-  in transition state (observe state) , observe state
+  in transition state tt , observe state
 
 open Data.List
 process-paired
@@ -98,12 +86,12 @@ process-paired
   → ℕ
   → (S × T)
   → PairedMachine S T A B
-  → List ((B × A) × (S × T))
-  → List ((B × A) × (S × T))
+  → List (S × T)
+  → List (S × T)
 process-paired zero _ _ acc = acc
 process-paired (suc n) state machine acc =
   let
     (new-state , observation) = step-paired state machine
-  in process-paired n new-state machine ((observation , state) ∷ acc)
+  in process-paired n new-state machine (new-state ∷ acc)
 
 ex = process-paired 10 (1 , 1) witnessed []

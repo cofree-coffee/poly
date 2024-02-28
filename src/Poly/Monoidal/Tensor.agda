@@ -5,7 +5,7 @@ module Poly.Monoidal.Tensor where
 
 open import Data.Unit
 open import Data.Product using (_×_; _,_)
-open import Function using (id)
+open import Function using (const; id)
 open import Poly
 open import Poly.Isomorphism
 open import Poly.Comonoid
@@ -25,6 +25,19 @@ _⊗_ : Poly → Poly → Poly
 (P ⊗ Q) .Base  = Base P × Base Q
 (P ⊗ Q) .Fiber (ptag , qtag) = Fiber P ptag × Fiber Q qtag
 
+-- | A helper function to help Agda resolve equality with no-eta-expansion.
+compute-tensor
+  : ∀ {S T A B : Set}
+  → S y^ T ⊗ A y^ B ⇒ (S × A) y^ (T × B)
+map-base compute-tensor = id
+map-fiber compute-tensor = const id
+
+uncompute-tensor
+  : ∀ {S T A B : Set}
+  → (S × A) y^ (T × B) ⇒ S y^ T ⊗ A y^ B 
+map-base uncompute-tensor = id
+map-fiber uncompute-tensor = const id
+
 -- | Functorial Action of _⊗_
 _⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
 (p⇒q ⊗⇒ r⇒z) .map-base (ptag , rtag) = (map-base p⇒q ptag) , (map-base r⇒z rtag)
@@ -35,14 +48,10 @@ _⊗⇒_ : ∀{P Q R Z : Poly} → P ⇒ Q → R ⇒ Z → P ⊗ R ⇒ Q ⊗ Z
 ⊗-swap .map-fiber tag (qargs , pargs) = pargs , qargs
 
 ⊗-first : ∀{P Q R : Poly} → P ⇒ R → P ⊗ Q ⇒ R ⊗ Q
-map-base (⊗-first p⇒r) (base-p , base-q) = (p⇒r .map-base base-p) , base-q
-map-fiber (⊗-first p⇒r) (base-p , base-q) (fib-r , fib-q) = p⇒r .map-fiber base-p fib-r , fib-q
-
--- second' : ∀{P Q R : Poly} → (_⊙_ : Poly → Poly → Poly) → Q ⇒ R → P ⊙ Q ⇒ P ⊙ R
--- second' _⊙_ q⇒r = ⊗-swap ⨟ₚ ⊗-first q⇒r ⨟ₚ ⊗-swap
+⊗-first f = f ⊗⇒ idₚ
 
 ⊗-second : ∀{P Q R : Poly} → Q ⇒ R → P ⊗ Q ⇒ P ⊗ R
-⊗-second q⇒r = ⊗-swap ⨟ₚ ⊗-first q⇒r ⨟ₚ ⊗-swap
+⊗-second g = idₚ ⊗⇒ g
 
 ⊗-split-l : ∀{P : Poly} → P ⇒ P ⊗ P
 ⊗-split-l .map-base ptag =  ptag , ptag

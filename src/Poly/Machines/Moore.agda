@@ -18,7 +18,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 --
 -- Sxˢ → Oxᴵ
 Moore : Set → Set → Set → Set
-Moore S I O = monomial S S ⇒ monomial O I
+Moore S I O = S y^ S ⇒ O y^ I
 
 -- | We can build a 'Moore' from an output function and a transition
 -- | function.
@@ -54,6 +54,5 @@ process-moore s i bot =
   let (_ , s') = process-moore' s i bot
   in (bot .map-base s') , s'
 
--- TODO: Broken due to `no-eta-equality` on Poly
--- moore-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
--- moore-× m n = m ⊗⇒ n
+moore-× : ∀{S₁ S₂ I₁ I₂ O₁ O₂ : Set} → Moore S₁ I₁ O₁ → Moore S₂ I₂ O₂ → Moore (S₁ × S₂) (I₁ × I₂) (O₁ × O₂)
+moore-× m n = uncompute-tensor ⨟ₚ m ⊗⇒ n ⨟ₚ compute-tensor

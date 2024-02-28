@@ -52,6 +52,8 @@ monomial : Set → Set → Poly
 (monomial S T) .Base = S
 (monomial S T) .Fiber  = λ _ → T
 
+_y^_ = monomial
+
 -- | S × X⁰
 constant : Set → Poly
 constant S = monomial S ⊥
